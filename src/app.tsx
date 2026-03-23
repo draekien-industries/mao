@@ -1,11 +1,8 @@
-import React from 'react';
+import { RouterProvider } from '@tanstack/react-router';
+import { router } from '@/lib/router';
 
-function App(): React.ReactElement {
-  return (
-    <div>
-      <h1>Hello from React</h1>
-    </div>
-  );
+function App() {
+  return <RouterProvider router={router} />;
 }
 
 export default App;
