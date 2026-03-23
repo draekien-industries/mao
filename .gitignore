@@ -5,3 +5,6 @@ dist/
 src/routeTree.gen.ts
 .env
 *.local
+npm-debug.log*
+.DS_Store
+coverage/
