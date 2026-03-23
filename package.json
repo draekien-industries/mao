@@ -10,7 +10,13 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "eslint --ext .ts,.tsx ."
+    "lint": "biome lint",
+    "lint:write": "biome lint --write",
+    "format": "biome format",
+    "format:write": "biome format --write",
+    "check": "biome check",
+    "check:write": "biome check --write",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": {
@@ -19,6 +25,7 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@biomejs/biome": "2.4.8",
     "@electron-forge/cli": "^7.11.1",
     "@electron-forge/maker-deb": "^7.11.1",
     "@electron-forge/maker-rpm": "^7.11.1",
@@ -33,12 +40,8 @@
     "@types/node": "^22.19.15",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@typescript-eslint/parser": "^5.62.0",
     "@vitejs/plugin-react": "^4.7.0",
     "electron": "41.0.3",
-    "eslint": "^8.57.1",
-    "eslint-plugin-import": "^2.32.0",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",
     "vite": "^5.4.21"
