@@ -1,11 +1,19 @@
 {
   "compilerOptions": {
+    "jsx": "react-jsx",
     "target": "ESNext",
     "module": "ESNext",
-    "allowJs": true,
-    "skipLibCheck": true,
+    "lib": ["dom", "ESNext"],
+    "experimentalDecorators": true,
+    "composite": true,
+    "declaration": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": false,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "noImplicitAny": true,
+    "strict": true,
+    "skipLibCheck": true,
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
@@ -13,7 +21,7 @@
     },
     "outDir": "dist",
     "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "jsx": "react-jsx"
-  }
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*", "./package.json", "./forge.config.ts", "./forge.env.d.ts", "*.mts"]
 }
