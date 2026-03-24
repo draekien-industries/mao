@@ -17,5 +17,6 @@ export const buildArgs = (params: QueryParams, extra: readonly string[]): string
   if (params.session_id) args.push("--session-id", params.session_id)
   if (params.name) args.push("--name", params.name)
   if (params.include_partial_messages) args.push("--verbose", "--include-partial-messages")
+  // params.cwd is NOT a CLI flag — handled via Command.workingDirectory in buildStream
   return args
 }

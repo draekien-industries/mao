@@ -87,6 +87,22 @@ describe("buildArgs", () => {
     expect(args).toContain("my-session")
   })
 
+  it("--max-turns with value 0 (undefined guard, not falsy)", async () => {
+    const { buildArgs } = await import("../service")
+    const { QueryParams } = await import("../params")
+    const args = buildArgs(new QueryParams({ prompt: "Hi", max_turns: 0 }), [])
+    expect(args).toContain("--max-turns")
+    expect(args).toContain("0")
+  })
+
+  it("--max-budget-usd with value 0 (undefined guard, not falsy)", async () => {
+    const { buildArgs } = await import("../service")
+    const { QueryParams } = await import("../params")
+    const args = buildArgs(new QueryParams({ prompt: "Hi", max_budget_usd: 0 }), [])
+    expect(args).toContain("--max-budget-usd")
+    expect(args).toContain("0")
+  })
+
   it("--verbose and --include-partial-messages together", async () => {
     const { buildArgs } = await import("../service")
     const { QueryParams } = await import("../params")
