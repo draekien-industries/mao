@@ -2,7 +2,7 @@ import { Command, CommandExecutor } from "@effect/platform"
 import { Effect, Fiber, Layer, Schema, Stream } from "effect"
 import { ClaudeCliParseError, ClaudeCliProcessError, ClaudeCliSpawnError } from "./errors"
 import { ClaudeEvent } from "./events"
-import { ContinueParams, FlagDef, QueryParams, ResumeParams } from "./params"
+import { ContinueParams, type FlagDef, QueryParams, ResumeParams } from "./params"
 import { ClaudeCli } from "./service-definition"
 
 type ParamClass = {
