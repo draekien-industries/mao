@@ -23,5 +23,11 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true
   },
-  "include": ["src/**/*", "./package.json", "./forge.config.ts", "./forge.env.d.ts", "*.mts"]
+  "include": [
+    "src/**/*",
+    "./package.json",
+    "./forge.config.ts",
+    "./forge.env.d.ts",
+    "*.mts"
+  ]
 }

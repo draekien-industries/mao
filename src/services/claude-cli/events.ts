@@ -1,4 +1,4 @@
-import { Schema } from "effect"
+import { Schema } from "effect";
 
 // Token usage counts (shared by multiple event types)
 export class Usage extends Schema.Class<Usage>("Usage")({
@@ -21,8 +21,8 @@ export class ToolUseBlock extends Schema.Class<ToolUseBlock>("ToolUseBlock")({
   input: Schema.Unknown,
 }) {}
 
-export const ContentBlock = Schema.Union(TextBlock, ToolUseBlock)
-export type ContentBlock = typeof ContentBlock.Type
+export const ContentBlock = Schema.Union(TextBlock, ToolUseBlock);
+export type ContentBlock = typeof ContentBlock.Type;
 
 // Delta variants for streaming content
 export class TextDelta extends Schema.Class<TextDelta>("TextDelta")({
@@ -30,16 +30,20 @@ export class TextDelta extends Schema.Class<TextDelta>("TextDelta")({
   text: Schema.String,
 }) {}
 
-export class InputJsonDelta extends Schema.Class<InputJsonDelta>("InputJsonDelta")({
+export class InputJsonDelta extends Schema.Class<InputJsonDelta>(
+  "InputJsonDelta",
+)({
   type: Schema.Literal("input_json_delta"),
   partial_json: Schema.String,
 }) {}
 
-export const ContentDelta = Schema.Union(TextDelta, InputJsonDelta)
-export type ContentDelta = typeof ContentDelta.Type
+export const ContentDelta = Schema.Union(TextDelta, InputJsonDelta);
+export type ContentDelta = typeof ContentDelta.Type;
 
 // API streaming events (nested inside StreamEventMessage.event)
-export class MessageStartApiEvent extends Schema.Class<MessageStartApiEvent>("MessageStartApiEvent")({
+export class MessageStartApiEvent extends Schema.Class<MessageStartApiEvent>(
+  "MessageStartApiEvent",
+)({
   type: Schema.Literal("message_start"),
   message: Schema.Struct({
     id: Schema.String,
@@ -53,24 +57,32 @@ export class MessageStartApiEvent extends Schema.Class<MessageStartApiEvent>("Me
   }),
 }) {}
 
-export class ContentBlockStartApiEvent extends Schema.Class<ContentBlockStartApiEvent>("ContentBlockStartApiEvent")({
+export class ContentBlockStartApiEvent extends Schema.Class<ContentBlockStartApiEvent>(
+  "ContentBlockStartApiEvent",
+)({
   type: Schema.Literal("content_block_start"),
   index: Schema.Number,
   content_block: ContentBlock,
 }) {}
 
-export class ContentBlockDeltaApiEvent extends Schema.Class<ContentBlockDeltaApiEvent>("ContentBlockDeltaApiEvent")({
+export class ContentBlockDeltaApiEvent extends Schema.Class<ContentBlockDeltaApiEvent>(
+  "ContentBlockDeltaApiEvent",
+)({
   type: Schema.Literal("content_block_delta"),
   index: Schema.Number,
   delta: ContentDelta,
 }) {}
 
-export class ContentBlockStopApiEvent extends Schema.Class<ContentBlockStopApiEvent>("ContentBlockStopApiEvent")({
+export class ContentBlockStopApiEvent extends Schema.Class<ContentBlockStopApiEvent>(
+  "ContentBlockStopApiEvent",
+)({
   type: Schema.Literal("content_block_stop"),
   index: Schema.Number,
 }) {}
 
-export class MessageDeltaApiEvent extends Schema.Class<MessageDeltaApiEvent>("MessageDeltaApiEvent")({
+export class MessageDeltaApiEvent extends Schema.Class<MessageDeltaApiEvent>(
+  "MessageDeltaApiEvent",
+)({
   type: Schema.Literal("message_delta"),
   delta: Schema.Struct({
     stop_reason: Schema.NullOr(Schema.String),
@@ -79,7 +91,9 @@ export class MessageDeltaApiEvent extends Schema.Class<MessageDeltaApiEvent>("Me
   usage: Schema.Struct({ output_tokens: Schema.Number }),
 }) {}
 
-export class MessageStopApiEvent extends Schema.Class<MessageStopApiEvent>("MessageStopApiEvent")({
+export class MessageStopApiEvent extends Schema.Class<MessageStopApiEvent>(
+  "MessageStopApiEvent",
+)({
   type: Schema.Literal("message_stop"),
 }) {}
 
@@ -90,18 +104,22 @@ export const ApiStreamEvent = Schema.Union(
   ContentBlockStopApiEvent,
   MessageDeltaApiEvent,
   MessageStopApiEvent,
-)
-export type ApiStreamEvent = typeof ApiStreamEvent.Type
+);
+export type ApiStreamEvent = typeof ApiStreamEvent.Type;
 
 // Top-level CLI stream-json events
-export class SystemInitEvent extends Schema.Class<SystemInitEvent>("SystemInitEvent")({
+export class SystemInitEvent extends Schema.Class<SystemInitEvent>(
+  "SystemInitEvent",
+)({
   type: Schema.Literal("system"),
   subtype: Schema.Literal("init"),
   session_id: Schema.String,
   uuid: Schema.String,
 }) {}
 
-export class SystemRetryEvent extends Schema.Class<SystemRetryEvent>("SystemRetryEvent")({
+export class SystemRetryEvent extends Schema.Class<SystemRetryEvent>(
+  "SystemRetryEvent",
+)({
   type: Schema.Literal("system"),
   subtype: Schema.Literal("api_retry"),
   attempt: Schema.Number,
@@ -113,7 +131,9 @@ export class SystemRetryEvent extends Schema.Class<SystemRetryEvent>("SystemRetr
   session_id: Schema.String,
 }) {}
 
-export class StreamEventMessage extends Schema.Class<StreamEventMessage>("StreamEventMessage")({
+export class StreamEventMessage extends Schema.Class<StreamEventMessage>(
+  "StreamEventMessage",
+)({
   type: Schema.Literal("stream_event"),
   event: ApiStreamEvent,
   parent_tool_use_id: Schema.NullOr(Schema.String),
@@ -121,7 +141,9 @@ export class StreamEventMessage extends Schema.Class<StreamEventMessage>("Stream
   session_id: Schema.String,
 }) {}
 
-export class AssistantMessageEvent extends Schema.Class<AssistantMessageEvent>("AssistantMessageEvent")({
+export class AssistantMessageEvent extends Schema.Class<AssistantMessageEvent>(
+  "AssistantMessageEvent",
+)({
   type: Schema.Literal("assistant"),
   message: Schema.Struct({
     id: Schema.String,
@@ -162,5 +184,5 @@ export const ClaudeEvent = Schema.Union(
   AssistantMessageEvent,
   ResultEvent,
   UnknownEvent, // must be last
-)
-export type ClaudeEvent = typeof ClaudeEvent.Type
+);
+export type ClaudeEvent = typeof ClaudeEvent.Type;

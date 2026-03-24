@@ -1,4 +1,4 @@
-import { Schema } from "effect"
+import { Schema } from "effect";
 
 export class ClaudeCliSpawnError extends Schema.TaggedError<ClaudeCliSpawnError>()(
   "ClaudeCliSpawnError",
@@ -15,4 +15,7 @@ export class ClaudeCliProcessError extends Schema.TaggedError<ClaudeCliProcessEr
   { exitCode: Schema.Number, stderr: Schema.String },
 ) {}
 
-export type ClaudeCliError = ClaudeCliSpawnError | ClaudeCliParseError | ClaudeCliProcessError
+export type ClaudeCliError =
+  | ClaudeCliSpawnError
+  | ClaudeCliParseError
+  | ClaudeCliProcessError;
