@@ -1,17 +1,11 @@
 import { Schema } from "effect";
 
-export const FlagDefSchema = Schema.Union(
-  Schema.Struct({ kind: Schema.Literal("string"), flag: Schema.String }),
-  Schema.Struct({ kind: Schema.Literal("number"), flag: Schema.String }),
-  Schema.Struct({ kind: Schema.Literal("boolean"), flag: Schema.String }),
-  Schema.Struct({ kind: Schema.Literal("variadic"), flag: Schema.String }),
-  Schema.Struct({
-    kind: Schema.Literal("compound-boolean"),
-    flags: Schema.Array(Schema.String),
-  }),
-);
-
-export type FlagDef = Schema.Schema.Type<typeof FlagDefSchema>;
+export type FlagDef =
+  | { readonly kind: "string"; readonly flag: string }
+  | { readonly kind: "number"; readonly flag: string }
+  | { readonly kind: "boolean"; readonly flag: string }
+  | { readonly kind: "variadic"; readonly flag: string }
+  | { readonly kind: "compound-boolean"; readonly flags: readonly string[] };
 
 const Flags = {
   prompt: { kind: "string", flag: "-p" },
@@ -31,63 +25,30 @@ const Flags = {
   fork: { kind: "boolean", flag: "--fork-session" },
 } as const satisfies Record<string, FlagDef>;
 
-const FlagMapSchema = Schema.Record({
-  key: Schema.String,
-  value: FlagDefSchema,
-});
+const sharedSchemaFields = {
+  prompt: Schema.String,
+  model: Schema.optional(Schema.String),
+  append_system_prompt: Schema.optional(Schema.String),
+  allowed_tools: Schema.optional(Schema.Array(Schema.String)),
+  max_turns: Schema.optional(Schema.Number),
+  max_budget_usd: Schema.optional(Schema.Number),
+  bare: Schema.optional(Schema.Boolean),
+  include_partial_messages: Schema.optional(Schema.Boolean),
+  name: Schema.optional(Schema.String),
+  cwd: Schema.optional(Schema.String),
+};
 
-// extractSchemas: `as` cast is unavoidable — Object.fromEntries loses key types and
-// Schema instances cannot be decoded with Schema.decodeSync.
-const extractSchemas = <T extends Record<string, { schema: unknown }>>(
-  defs: T,
-) =>
-  Object.fromEntries(Object.entries(defs).map(([k, v]) => [k, v.schema])) as {
-    [K in keyof T]: T[K]["schema"];
-  };
-
-// extractFlagMap: uses Schema.decodeSync with FlagDefSchema — no `as` cast needed.
-const extractFlagMap = <
-  T extends Record<string, { schema: unknown; flag?: FlagDef }>,
->(
-  defs: T,
-) =>
-  Schema.decodeSync(FlagMapSchema)(
-    Object.fromEntries(
-      Object.entries(defs)
-        .filter(([, v]) => v.flag !== undefined)
-        // biome-ignore lint/style/noNonNullAssertion: flag is defined by filter
-        .map(([k, v]) => [k, v.flag!]),
-    ),
-  );
-
-// Single source of truth — each shared field defined once with schema + flag
-const sharedDefs = {
-  prompt: { schema: Schema.String, flag: Flags.prompt },
-  model: { schema: Schema.optional(Schema.String), flag: Flags.model },
-  append_system_prompt: {
-    schema: Schema.optional(Schema.String),
-    flag: Flags.append_system_prompt,
-  },
-  allowed_tools: {
-    schema: Schema.optional(Schema.Array(Schema.String)),
-    flag: Flags.allowed_tools,
-  },
-  max_turns: { schema: Schema.optional(Schema.Number), flag: Flags.max_turns },
-  max_budget_usd: {
-    schema: Schema.optional(Schema.Number),
-    flag: Flags.max_budget_usd,
-  },
-  bare: { schema: Schema.optional(Schema.Boolean), flag: Flags.bare },
-  include_partial_messages: {
-    schema: Schema.optional(Schema.Boolean),
-    flag: Flags.include_partial_messages,
-  },
-  name: { schema: Schema.optional(Schema.String), flag: Flags.name },
-  cwd: { schema: Schema.optional(Schema.String) }, // no flag — not a CLI arg
-} as const;
-
-const sharedSchemaFields = extractSchemas(sharedDefs);
-const sharedFlagMap = extractFlagMap(sharedDefs);
+const sharedFlagMap: Record<string, FlagDef> = {
+  prompt: Flags.prompt,
+  model: Flags.model,
+  append_system_prompt: Flags.append_system_prompt,
+  allowed_tools: Flags.allowed_tools,
+  max_turns: Flags.max_turns,
+  max_budget_usd: Flags.max_budget_usd,
+  bare: Flags.bare,
+  include_partial_messages: Flags.include_partial_messages,
+  name: Flags.name,
+};
 
 const baseCommandFlags = ["--output-format", "stream-json"] as const;
 
