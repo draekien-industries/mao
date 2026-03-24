@@ -92,3 +92,75 @@ export const ApiStreamEvent = Schema.Union(
   MessageStopApiEvent,
 )
 export type ApiStreamEvent = typeof ApiStreamEvent.Type
+
+// Top-level CLI stream-json events
+export class SystemInitEvent extends Schema.Class<SystemInitEvent>("SystemInitEvent")({
+  type: Schema.Literal("system"),
+  subtype: Schema.Literal("init"),
+  session_id: Schema.String,
+  uuid: Schema.String,
+}) {}
+
+export class SystemRetryEvent extends Schema.Class<SystemRetryEvent>("SystemRetryEvent")({
+  type: Schema.Literal("system"),
+  subtype: Schema.Literal("api_retry"),
+  attempt: Schema.Number,
+  max_retries: Schema.Number,
+  retry_delay_ms: Schema.Number,
+  error_status: Schema.NullOr(Schema.Number),
+  error: Schema.String,
+  uuid: Schema.String,
+  session_id: Schema.String,
+}) {}
+
+export class StreamEventMessage extends Schema.Class<StreamEventMessage>("StreamEventMessage")({
+  type: Schema.Literal("stream_event"),
+  event: ApiStreamEvent,
+  parent_tool_use_id: Schema.NullOr(Schema.String),
+  uuid: Schema.String,
+  session_id: Schema.String,
+}) {}
+
+export class AssistantMessageEvent extends Schema.Class<AssistantMessageEvent>("AssistantMessageEvent")({
+  type: Schema.Literal("assistant"),
+  message: Schema.Struct({
+    id: Schema.String,
+    type: Schema.Literal("message"),
+    role: Schema.Literal("assistant"),
+    content: Schema.Array(ContentBlock),
+    model: Schema.String,
+    stop_reason: Schema.NullOr(Schema.String),
+    stop_sequence: Schema.NullOr(Schema.String),
+    usage: Usage,
+  }),
+  uuid: Schema.String,
+  session_id: Schema.String,
+}) {}
+
+export class ResultEvent extends Schema.Class<ResultEvent>("ResultEvent")({
+  type: Schema.Literal("result"),
+  subtype: Schema.String,
+  result: Schema.String,
+  is_error: Schema.Boolean,
+  session_id: Schema.String,
+  uuid: Schema.String,
+  total_cost_usd: Schema.optional(Schema.Number),
+  usage: Schema.optional(Usage),
+}) {}
+
+// Catchall — must be last; catches anything not matched above (e.g. "user"/tool_result events)
+export class UnknownEvent extends Schema.Class<UnknownEvent>("UnknownEvent")({
+  type: Schema.String,
+  session_id: Schema.optional(Schema.String),
+  uuid: Schema.optional(Schema.String),
+}) {}
+
+export const ClaudeEvent = Schema.Union(
+  SystemInitEvent,
+  SystemRetryEvent,
+  StreamEventMessage,
+  AssistantMessageEvent,
+  ResultEvent,
+  UnknownEvent, // must be last
+)
+export type ClaudeEvent = typeof ClaudeEvent.Type

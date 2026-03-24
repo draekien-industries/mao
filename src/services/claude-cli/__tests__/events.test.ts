@@ -105,3 +105,66 @@ describe("ApiStreamEvent union", () => {
     expect(result.type).toBe("message_stop")
   })
 })
+
+describe("ClaudeEvent union (CLI stream-json)", () => {
+  it("decodes SystemInitEvent", async () => {
+    const { ClaudeEvent } = await import("../events")
+    const raw = { type: "system", subtype: "init", session_id: "sess_01", uuid: "uuid_01" }
+    const result = await Effect.runPromise(Schema.decodeUnknown(ClaudeEvent)(raw))
+    expect(result.type).toBe("system")
+  })
+
+  it("decodes SystemRetryEvent", async () => {
+    const { ClaudeEvent } = await import("../events")
+    const raw = {
+      type: "system", subtype: "api_retry", attempt: 1, max_retries: 3,
+      retry_delay_ms: 1000, error_status: 429, error: "rate limited",
+      uuid: "uuid_01", session_id: "sess_01",
+    }
+    const result = await Effect.runPromise(Schema.decodeUnknown(ClaudeEvent)(raw))
+    expect(result.type).toBe("system")
+  })
+
+  it("decodes AssistantMessageEvent", async () => {
+    const { ClaudeEvent } = await import("../events")
+    const raw = {
+      type: "assistant",
+      message: {
+        id: "msg_01", type: "message", role: "assistant",
+        content: [{ type: "text", text: "Hello!" }],
+        model: "claude-opus-4-6", stop_reason: "end_turn", stop_sequence: null,
+        usage: { input_tokens: 10, output_tokens: 5 },
+      },
+      uuid: "uuid_02", session_id: "sess_01",
+    }
+    const result = await Effect.runPromise(Schema.decodeUnknown(ClaudeEvent)(raw))
+    expect(result.type).toBe("assistant")
+  })
+
+  it("decodes ResultEvent", async () => {
+    const { ClaudeEvent } = await import("../events")
+    const raw = {
+      type: "result", subtype: "success", result: "Final answer",
+      is_error: false, session_id: "sess_01", uuid: "uuid_03", total_cost_usd: 0.002,
+    }
+    const result = await Effect.runPromise(Schema.decodeUnknown(ClaudeEvent)(raw))
+    expect(result.type).toBe("result")
+  })
+
+  it("decodes StreamEventMessage wrapping MessageStopApiEvent", async () => {
+    const { ClaudeEvent } = await import("../events")
+    const raw = {
+      type: "stream_event", event: { type: "message_stop" },
+      parent_tool_use_id: null, uuid: "uuid_01", session_id: "sess_01",
+    }
+    const result = await Effect.runPromise(Schema.decodeUnknown(ClaudeEvent)(raw))
+    expect(result.type).toBe("stream_event")
+  })
+
+  it("UnknownEvent catches unrecognised types without error", async () => {
+    const { ClaudeEvent } = await import("../events")
+    const raw = { type: "user", session_id: "sess_01", uuid: "uuid_01", content: [] }
+    const result = await Effect.runPromise(Schema.decodeUnknown(ClaudeEvent)(raw))
+    expect(result.type).toBe("user")
+  })
+})
