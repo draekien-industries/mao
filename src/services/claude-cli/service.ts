@@ -35,12 +35,12 @@ const buildStream = (
         Effect.mapError((cause) => new ClaudeCliSpawnError({ message: String(cause), cause })),
       )
 
-      // Collect stderr concurrently so it's available when we check the exit code
+      // Collect stderr concurrently; forkScoped ties the fiber lifetime to the stream scope
       const stderrFiber = yield* process.stderr.pipe(
         Stream.decodeText(),
         Stream.runFold("", (acc, s) => acc + s),
         Effect.mapError((cause) => new ClaudeCliSpawnError({ message: String(cause), cause })),
-        Effect.fork,
+        Effect.forkScoped,
       )
 
       // After stdout drains, verify exit code; fail stream if non-zero
