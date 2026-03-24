@@ -132,4 +132,11 @@ describe("ClaudeCli stream pipeline", () => {
     const args = buildArgs(params, ["--resume", params.session_id, "--fork-session"])
     expect(args).toContain("--fork-session")
   })
+
+  it("continue_() appends --continue to args", async () => {
+    const { buildArgs } = await import("../service")
+    const { ContinueParams } = await import("../params")
+    const args = buildArgs(new ContinueParams({ prompt: "Hi" }), ["--continue"])
+    expect(args).toContain("--continue")
+  })
 })
