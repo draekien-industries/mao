@@ -95,7 +95,7 @@ const buildStream = (
         );
         if (exitCode !== 0) {
           const stderr = yield* Fiber.join(stderrFiber);
-          yield* Effect.fail(new ClaudeCliProcessError({ exitCode, stderr }));
+          return yield* new ClaudeCliProcessError({ exitCode, stderr });
         }
       });
 
@@ -107,16 +107,9 @@ const buildStream = (
         Stream.splitLines,
         Stream.filter((line) => line.trim().length > 0),
         Stream.mapEffect((line) =>
-          Effect.try({
-            try: () => JSON.parse(line),
-            catch: (e) => new ClaudeCliParseError({ raw: line, cause: e }),
-          }).pipe(
-            Effect.flatMap((json) =>
-              Schema.decodeUnknown(ClaudeEvent)(json).pipe(
-                Effect.mapError(
-                  (cause) => new ClaudeCliParseError({ raw: line, cause }),
-                ),
-              ),
+          Schema.decodeUnknown(Schema.parseJson(ClaudeEvent))(line).pipe(
+            Effect.mapError(
+              (cause) => new ClaudeCliParseError({ raw: line, cause }),
             ),
           ),
         ),
