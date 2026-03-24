@@ -1,5 +1,30 @@
 import { Schema } from "effect"
 
+export const FlagDefSchema = Schema.Union(
+  Schema.Struct({ kind: Schema.Literal("string"),           flag: Schema.String }),
+  Schema.Struct({ kind: Schema.Literal("number"),           flag: Schema.String }),
+  Schema.Struct({ kind: Schema.Literal("boolean"),          flag: Schema.String }),
+  Schema.Struct({ kind: Schema.Literal("variadic"),         flag: Schema.String }),
+  Schema.Struct({ kind: Schema.Literal("compound-boolean"), flags: Schema.Array(Schema.String) }),
+)
+
+export type FlagDef = Schema.Schema.Type<typeof FlagDefSchema>
+
+const Flags = {
+  prompt:                   { kind: "string",           flag: "-p" },
+  model:                    { kind: "string",           flag: "--model" },
+  append_system_prompt:     { kind: "string",           flag: "--append-system-prompt" },
+  allowed_tools:            { kind: "variadic",         flag: "--allowedTools" },
+  max_turns:                { kind: "number",           flag: "--max-turns" },
+  max_budget_usd:           { kind: "number",           flag: "--max-budget-usd" },
+  bare:                     { kind: "boolean",          flag: "--bare" },
+  session_id:               { kind: "string",           flag: "--session-id" },
+  resume:                   { kind: "string",           flag: "--resume" },
+  name:                     { kind: "string",           flag: "--name" },
+  include_partial_messages: { kind: "compound-boolean", flags: ["--verbose", "--include-partial-messages"] },
+  fork:                     { kind: "boolean",          flag: "--fork-session" },
+} as const satisfies Record<string, FlagDef>
+
 export class QueryParams extends Schema.Class<QueryParams>("QueryParams")({
   prompt: Schema.String,
   model: Schema.optional(Schema.String),
