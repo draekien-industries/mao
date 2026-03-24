@@ -24,9 +24,10 @@ export const buildArgs = (
   ParamType: ParamClass,
 ): string[] => {
   const args: string[] = [...ParamType.commandFlags];
+  const values: Record<string, unknown> = { ...params };
 
   for (const [field, def] of Object.entries(ParamType.flagMap)) {
-    const value = (params as unknown as Record<string, unknown>)[field];
+    const value = values[field];
 
     switch (def.kind) {
       case "string":
