@@ -52,3 +52,56 @@ describe("ContentDelta union", () => {
     expect(result.partial_json).toBe('{"file":')
   })
 })
+
+describe("ApiStreamEvent union", () => {
+  it("decodes MessageStartApiEvent", async () => {
+    const { ApiStreamEvent } = await import("../events")
+    const raw = {
+      type: "message_start",
+      message: {
+        id: "msg_01", type: "message", role: "assistant", content: [],
+        model: "claude-opus-4-6", stop_reason: null, stop_sequence: null,
+        usage: { input_tokens: 25, output_tokens: 0 },
+      },
+    }
+    const result = await Effect.runPromise(Schema.decodeUnknown(ApiStreamEvent)(raw))
+    expect(result.type).toBe("message_start")
+  })
+
+  it("decodes ContentBlockStartApiEvent", async () => {
+    const { ApiStreamEvent } = await import("../events")
+    const raw = { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } }
+    const result = await Effect.runPromise(Schema.decodeUnknown(ApiStreamEvent)(raw))
+    expect(result.type).toBe("content_block_start")
+  })
+
+  it("decodes ContentBlockDeltaApiEvent with TextDelta", async () => {
+    const { ApiStreamEvent } = await import("../events")
+    const raw = { type: "content_block_delta", index: 0, delta: { type: "text_delta", text: "Hello" } }
+    const result = await Effect.runPromise(Schema.decodeUnknown(ApiStreamEvent)(raw))
+    expect(result.type).toBe("content_block_delta")
+  })
+
+  it("decodes ContentBlockStopApiEvent", async () => {
+    const { ApiStreamEvent } = await import("../events")
+    const result = await Effect.runPromise(Schema.decodeUnknown(ApiStreamEvent)({ type: "content_block_stop", index: 0 }))
+    expect(result.type).toBe("content_block_stop")
+  })
+
+  it("decodes MessageDeltaApiEvent", async () => {
+    const { ApiStreamEvent } = await import("../events")
+    const raw = {
+      type: "message_delta",
+      delta: { stop_reason: "end_turn", stop_sequence: null },
+      usage: { output_tokens: 42 },
+    }
+    const result = await Effect.runPromise(Schema.decodeUnknown(ApiStreamEvent)(raw))
+    expect(result.type).toBe("message_delta")
+  })
+
+  it("decodes MessageStopApiEvent", async () => {
+    const { ApiStreamEvent } = await import("../events")
+    const result = await Effect.runPromise(Schema.decodeUnknown(ApiStreamEvent)({ type: "message_stop" }))
+    expect(result.type).toBe("message_stop")
+  })
+})
