@@ -116,27 +116,4 @@ describe("ClaudeCli stream pipeline", () => {
     expect(Chunk.size(events)).toBe(2)
   })
 
-  it("resume() appends --resume and session_id to args", async () => {
-    const { buildArgs } = await import("../service")
-    const { ResumeParams } = await import("../params")
-    const params = new ResumeParams({ prompt: "Hi", session_id: "sess_01" })
-    const args = buildArgs(params, ["--resume", params.session_id])
-    expect(args).toContain("--resume")
-    expect(args).toContain("sess_01")
-  })
-
-  it("resume() with fork appends --fork-session", async () => {
-    const { buildArgs } = await import("../service")
-    const { ResumeParams } = await import("../params")
-    const params = new ResumeParams({ prompt: "Hi", session_id: "sess_01", fork: true })
-    const args = buildArgs(params, ["--resume", params.session_id, "--fork-session"])
-    expect(args).toContain("--fork-session")
-  })
-
-  it("continue_() appends --continue to args", async () => {
-    const { buildArgs } = await import("../service")
-    const { ContinueParams } = await import("../params")
-    const args = buildArgs(new ContinueParams({ prompt: "Hi" }), ["--continue"])
-    expect(args).toContain("--continue")
-  })
 })

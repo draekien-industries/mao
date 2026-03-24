@@ -2,30 +2,50 @@ import { Command, CommandExecutor } from "@effect/platform"
 import { Effect, Fiber, Layer, Schema, Stream } from "effect"
 import { ClaudeCliParseError, ClaudeCliProcessError, ClaudeCliSpawnError } from "./errors"
 import { ClaudeEvent } from "./events"
-import type { ContinueParams, ResumeParams } from "./params"
-import { QueryParams } from "./params"
+import { ContinueParams, FlagDef, QueryParams, ResumeParams } from "./params"
 import { ClaudeCli } from "./service-definition"
 
-export const buildArgs = (params: QueryParams, extra: readonly string[]): string[] => {
-  const args = ["-p", params.prompt, "--output-format", "stream-json", ...extra]
-  if (params.model) args.push("--model", params.model)
-  if (params.append_system_prompt) args.push("--append-system-prompt", params.append_system_prompt)
-  if (params.allowed_tools?.length) args.push("--allowedTools", ...params.allowed_tools)
-  if (params.max_turns !== undefined) args.push("--max-turns", String(params.max_turns))
-  if (params.max_budget_usd !== undefined) args.push("--max-budget-usd", String(params.max_budget_usd))
-  if (params.bare) args.push("--bare")
-  if (params.session_id) args.push("--session-id", params.session_id)
-  if (params.name) args.push("--name", params.name)
-  if (params.include_partial_messages) args.push("--verbose", "--include-partial-messages")
-  // params.cwd is NOT a CLI flag — handled via Command.workingDirectory in buildStream
+type ParamClass = {
+  readonly flagMap: Record<string, FlagDef>
+  readonly commandFlags: readonly string[]
+}
+
+export const buildArgs = (
+  params: QueryParams | ResumeParams | ContinueParams,
+  ParamType: ParamClass,
+): string[] => {
+  const args: string[] = [...ParamType.commandFlags]
+
+  for (const [field, def] of Object.entries(ParamType.flagMap)) {
+    const value = (params as unknown as Record<string, unknown>)[field]
+
+    switch (def.kind) {
+      case "string":
+        if (value != null && value !== "") args.push(def.flag, value as string)
+        break
+      case "number":
+        if (value !== undefined) args.push(def.flag, String(value))
+        break
+      case "boolean":
+        if (value === true) args.push(def.flag)
+        break
+      case "variadic":
+        if (Array.isArray(value) && value.length > 0) args.push(def.flag, ...value)
+        break
+      case "compound-boolean":
+        if (value === true) args.push(...def.flags)
+        break
+    }
+  }
+
   return args
 }
 
 const buildStream = (
-  params: QueryParams,
-  extraArgs: readonly string[],
+  params: QueryParams | ResumeParams | ContinueParams,
+  ParamType: ParamClass,
 ): Stream.Stream<ClaudeEvent, ClaudeCliSpawnError | ClaudeCliParseError | ClaudeCliProcessError, CommandExecutor.CommandExecutor> => {
-  const args = buildArgs(params, extraArgs)
+  const args = buildArgs(params, ParamType)
   let command = Command.make("claude", ...args)
   if (params.cwd) command = Command.workingDirectory(command, params.cwd)
 
@@ -91,16 +111,9 @@ export const ClaudeCliLive = Layer.effect(
       stream.pipe(Stream.provideService(CommandExecutor.CommandExecutor, executor))
 
     return {
-      query: (params: QueryParams) => provide(buildStream(params, [])),
-      resume: (params: ResumeParams) =>
-        provide(
-          buildStream(params, [
-            "--resume",
-            params.session_id,
-            ...(params.fork ? ["--fork-session"] : []),
-          ]),
-        ),
-      continue_: (params: ContinueParams) => provide(buildStream(params, ["--continue"])),
+      query: (params: QueryParams) => provide(buildStream(params, QueryParams)),
+      resume: (params: ResumeParams) => provide(buildStream(params, ResumeParams)),
+      continue_: (params: ContinueParams) => provide(buildStream(params, ContinueParams)),
     }
   }),
 )
