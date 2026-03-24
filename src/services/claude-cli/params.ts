@@ -64,26 +64,27 @@ const sharedFlagMap = extractFlagMap(sharedDefs)
 const baseCommandFlags = ["--output-format", "stream-json"] as const
 
 export class QueryParams extends Schema.Class<QueryParams>("QueryParams")({
-  prompt: Schema.String,
-  model: Schema.optional(Schema.String),
-  append_system_prompt: Schema.optional(Schema.String), // maps to --append-system-prompt
-  allowed_tools: Schema.optional(Schema.Array(Schema.String)),
-  max_turns: Schema.optional(Schema.Number),
-  max_budget_usd: Schema.optional(Schema.Number),
-  bare: Schema.optional(Schema.Boolean),
-  include_partial_messages: Schema.optional(Schema.Boolean), // requires --verbose
+  ...sharedSchemaFields,
   session_id: Schema.optional(Schema.String),
-  name: Schema.optional(Schema.String),
-  cwd: Schema.optional(Schema.String),
-}) {}
+}) {
+  static readonly flagMap = { ...sharedFlagMap, session_id: Flags.session_id }
+  static readonly commandFlags = [...baseCommandFlags]
+}
 
-// session_id is required for resume — spread QueryParams.fields and override
+// session_id is required for resume; maps to --resume (not --session-id)
 export class ResumeParams extends Schema.Class<ResumeParams>("ResumeParams")({
-  ...QueryParams.fields,
-  session_id: Schema.String, // required (overrides optional in QueryParams)
+  ...sharedSchemaFields,
+  session_id: Schema.String,
   fork: Schema.optional(Schema.Boolean),
-}) {}
+}) {
+  static readonly flagMap = { ...sharedFlagMap, session_id: Flags.resume, fork: Flags.fork }
+  static readonly commandFlags = [...baseCommandFlags]
+}
 
+// --continue is a command flag (not a field), and session_id is excluded
 export class ContinueParams extends Schema.Class<ContinueParams>("ContinueParams")({
-  ...QueryParams.fields,
-}) {}
+  ...sharedSchemaFields,
+}) {
+  static readonly flagMap = { ...sharedFlagMap }
+  static readonly commandFlags = [...baseCommandFlags, "--continue"]
+}
