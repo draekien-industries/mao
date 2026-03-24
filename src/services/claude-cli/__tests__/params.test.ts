@@ -119,8 +119,9 @@ describe("buildArgs", () => {
     const r = buildArgs(new ResumeParams({ prompt: "Hi", session_id: "sess_01" }), ResumeParams)
     const c = buildArgs(new ContinueParams({ prompt: "Hi" }), ContinueParams)
     for (const args of [q, r, c]) {
-      expect(args).toContain("--output-format")
-      expect(args).toContain("stream-json")
+      const idx = args.indexOf("--output-format")
+      expect(idx).toBeGreaterThanOrEqual(0)
+      expect(args[idx + 1]).toBe("stream-json")
     }
   })
 
@@ -170,5 +171,6 @@ describe("buildArgs", () => {
     const { ContinueParams } = await import("../params")
     const args = buildArgs(new ContinueParams({ prompt: "Hi" }), ContinueParams)
     expect(args).not.toContain("--session-id")
+    expect(args).not.toContain("--resume")
   })
 })
