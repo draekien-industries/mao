@@ -9,7 +9,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: Native module packaging configured (Vite externals, Forge AutoUnpackNativesPlugin, electron-rebuild) so better-sqlite3 works in packaged builds
+- [x] **INFRA-01**: Native module packaging configured (Vite externals, Forge AutoUnpackNativesPlugin, electron-rebuild) so better-sqlite3 works in packaged builds
 - [ ] **INFRA-02**: SQLite database created in Electron's app.getPath('userData') on first launch
 - [ ] **INFRA-03**: Database connection managed as Effect Layer with acquireRelease semantics for clean lifecycle
 - [ ] **INFRA-04**: WAL mode enabled via PRAGMA for crash resilience and atomic transactions
@@ -76,7 +76,7 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 1 | Pending |
 | INFRA-03 | Phase 1 | Pending |
 | INFRA-04 | Phase 1 | Pending |
