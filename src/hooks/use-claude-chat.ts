@@ -1,11 +1,14 @@
 import { Effect, Stream } from "effect";
 import { useEffect, useRef, useState } from "react";
 import { formatClaudeCliError } from "@/services/claude-cli/errors";
-import type {
-  AssistantMessageEvent,
-  ClaudeEvent,
-  StreamEventMessage,
-  SystemInitEvent,
+import type { ClaudeEvent } from "@/services/claude-cli/events";
+import {
+  isAssistantMessage,
+  isContentBlockDelta,
+  isResult,
+  isStreamEvent,
+  isSystemInit,
+  isTextDelta,
 } from "@/services/claude-cli/events";
 import { QueryParams } from "@/services/claude-cli/params";
 import { ClaudeCli } from "@/services/claude-cli/service-definition";
@@ -55,45 +58,29 @@ export function useClaudeChat() {
           eventsRef.current = [...eventsRef.current, event];
           setEventCount((c) => c + 1);
 
-          switch (event.type) {
-            case "system": {
-              const sysEvent = event as SystemInitEvent;
-              if ("subtype" in sysEvent && sysEvent.subtype === "init") {
-                sessionIdRef.current = sysEvent.session_id;
-              }
-              break;
+          if (isSystemInit(event)) {
+            sessionIdRef.current = event.session_id;
+          } else if (isStreamEvent(event)) {
+            if (
+              isContentBlockDelta(event.event) &&
+              isTextDelta(event.event.delta)
+            ) {
+              const chunk = event.event.delta.text;
+              setStreamingText((prev) => prev + chunk);
             }
-
-            case "stream_event": {
-              const apiEvent = (event as StreamEventMessage).event;
-              if (
-                apiEvent.type === "content_block_delta" &&
-                apiEvent.delta.type === "text_delta"
-              ) {
-                const chunk = apiEvent.delta.text;
-                setStreamingText((prev) => prev + chunk);
-              }
-              break;
-            }
-
-            case "assistant": {
-              const assistantEvt = event as AssistantMessageEvent;
-              const text = assistantEvt.message.content
-                .filter((block) => block.type === "text")
-                .map((block) => ("text" in block ? block.text : ""))
-                .join("");
-              setMessages((prev) => [
-                ...prev,
-                { role: "assistant", content: text },
-              ]);
-              setStreamingText("");
-              break;
-            }
-
-            case "result":
-              setIsStreaming(false);
-              isStreamingRef.current = false;
-              break;
+          } else if (isAssistantMessage(event)) {
+            const text = event.message.content
+              .filter((block) => block.type === "text")
+              .map((block) => ("text" in block ? block.text : ""))
+              .join("");
+            setMessages((prev) => [
+              ...prev,
+              { role: "assistant", content: text },
+            ]);
+            setStreamingText("");
+          } else if (isResult(event)) {
+            setIsStreaming(false);
+            isStreamingRef.current = false;
           }
         }),
       );

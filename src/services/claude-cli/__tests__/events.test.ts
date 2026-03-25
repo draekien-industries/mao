@@ -255,3 +255,102 @@ describe("ClaudeEvent union (CLI stream-json)", () => {
     expect(result.type).toBe("user");
   });
 });
+
+describe("Schema.is type guards", () => {
+  it("isSystemInit narrows SystemInitEvent", async () => {
+    const { ClaudeEvent, isSystemInit } = await import("../events");
+    const raw = {
+      type: "system",
+      subtype: "init",
+      session_id: "sess_01",
+      uuid: "uuid_01",
+    };
+    const event = await Effect.runPromise(
+      Schema.decodeUnknown(ClaudeEvent)(raw),
+    );
+    expect(isSystemInit(event)).toBe(true);
+    if (isSystemInit(event)) {
+      expect(event.session_id).toBe("sess_01");
+    }
+  });
+
+  it("isSystemRetry narrows SystemRetryEvent", async () => {
+    const { ClaudeEvent, isSystemInit, isSystemRetry } = await import(
+      "../events"
+    );
+    const raw = {
+      type: "system",
+      subtype: "api_retry",
+      attempt: 1,
+      max_retries: 3,
+      retry_delay_ms: 1000,
+      error_status: 429,
+      error: "rate limited",
+      uuid: "uuid_01",
+      session_id: "sess_01",
+    };
+    const event = await Effect.runPromise(
+      Schema.decodeUnknown(ClaudeEvent)(raw),
+    );
+    expect(isSystemRetry(event)).toBe(true);
+    expect(isSystemInit(event)).toBe(false);
+  });
+
+  it("isStreamEvent narrows StreamEventMessage", async () => {
+    const { ClaudeEvent, isStreamEvent } = await import("../events");
+    const raw = {
+      type: "stream_event",
+      event: { type: "message_stop" },
+      parent_tool_use_id: null,
+      uuid: "uuid_01",
+      session_id: "sess_01",
+    };
+    const event = await Effect.runPromise(
+      Schema.decodeUnknown(ClaudeEvent)(raw),
+    );
+    expect(isStreamEvent(event)).toBe(true);
+    if (isStreamEvent(event)) {
+      expect(event.event.type).toBe("message_stop");
+    }
+  });
+
+  it("isContentBlockDelta + isTextDelta narrow nested deltas", async () => {
+    const { ApiStreamEvent, isContentBlockDelta, isTextDelta } = await import(
+      "../events"
+    );
+    const raw = {
+      type: "content_block_delta",
+      index: 0,
+      delta: { type: "text_delta", text: "Hello" },
+    };
+    const event = await Effect.runPromise(
+      Schema.decodeUnknown(ApiStreamEvent)(raw),
+    );
+    expect(isContentBlockDelta(event)).toBe(true);
+    if (isContentBlockDelta(event)) {
+      expect(isTextDelta(event.delta)).toBe(true);
+      if (isTextDelta(event.delta)) {
+        expect(event.delta.text).toBe("Hello");
+      }
+    }
+  });
+
+  it("guards reject non-matching events", async () => {
+    const { ClaudeEvent, isSystemInit, isResult, isAssistantMessage } =
+      await import("../events");
+    const raw = {
+      type: "result",
+      subtype: "success",
+      result: "done",
+      is_error: false,
+      session_id: "sess_01",
+      uuid: "uuid_01",
+    };
+    const event = await Effect.runPromise(
+      Schema.decodeUnknown(ClaudeEvent)(raw),
+    );
+    expect(isResult(event)).toBe(true);
+    expect(isSystemInit(event)).toBe(false);
+    expect(isAssistantMessage(event)).toBe(false);
+  });
+});

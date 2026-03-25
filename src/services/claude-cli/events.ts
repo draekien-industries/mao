@@ -186,3 +186,14 @@ export const ClaudeEvent = Schema.Union(
   UnknownEvent, // must be last
 );
 export type ClaudeEvent = typeof ClaudeEvent.Type;
+
+// Type guards for narrowing ClaudeEvent union members
+export const isSystemInit = Schema.is(SystemInitEvent);
+export const isSystemRetry = Schema.is(SystemRetryEvent);
+export const isStreamEvent = Schema.is(StreamEventMessage);
+export const isAssistantMessage = Schema.is(AssistantMessageEvent);
+export const isResult = Schema.is(ResultEvent);
+
+// Type guards for narrowing nested ApiStreamEvent / ContentDelta
+export const isContentBlockDelta = Schema.is(ContentBlockDeltaApiEvent);
+export const isTextDelta = Schema.is(TextDelta);
