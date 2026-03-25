@@ -76,32 +76,32 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | — | Pending |
-| INFRA-02 | — | Pending |
-| INFRA-03 | — | Pending |
-| INFRA-04 | — | Pending |
-| EVNT-01 | — | Pending |
-| EVNT-02 | — | Pending |
-| EVNT-03 | — | Pending |
-| EVNT-04 | — | Pending |
-| WPIPE-01 | — | Pending |
-| WPIPE-02 | — | Pending |
-| WPIPE-03 | — | Pending |
-| WPIPE-04 | — | Pending |
-| TAB-01 | — | Pending |
-| TAB-02 | — | Pending |
-| TAB-03 | — | Pending |
-| RECON-01 | — | Pending |
-| RECON-02 | — | Pending |
-| RECON-03 | — | Pending |
-| SAFE-01 | — | Pending |
-| SAFE-02 | — | Pending |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Pending |
+| INFRA-04 | Phase 1 | Pending |
+| EVNT-01 | Phase 2 | Pending |
+| EVNT-02 | Phase 2 | Pending |
+| EVNT-03 | Phase 2 | Pending |
+| EVNT-04 | Phase 2 | Pending |
+| WPIPE-01 | Phase 3 | Pending |
+| WPIPE-02 | Phase 3 | Pending |
+| WPIPE-03 | Phase 3 | Pending |
+| WPIPE-04 | Phase 3 | Pending |
+| TAB-01 | Phase 2 | Pending |
+| TAB-02 | Phase 5 | Pending |
+| TAB-03 | Phase 5 | Pending |
+| RECON-01 | Phase 4 | Pending |
+| RECON-02 | Phase 4 | Pending |
+| RECON-03 | Phase 4 | Pending |
+| SAFE-01 | Phase 5 | Pending |
+| SAFE-02 | Phase 1 | Pending |
 
 **Coverage:**
 - v1 requirements: 20 total
-- Mapped to phases: 0
-- Unmapped: 20 (awaiting roadmap)
+- Mapped to phases: 20
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-25*
-*Last updated: 2026-03-25 after initial definition*
+*Last updated: 2026-03-25 after roadmap creation*
