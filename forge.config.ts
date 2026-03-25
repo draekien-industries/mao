@@ -9,7 +9,28 @@ import type { ForgeConfig } from "@electron-forge/shared-types";
 
 const config: ForgeConfig = {
   packagerConfig: {
-    asar: true,
+    asar: {
+      unpack: "*.{node,dylib}",
+    },
+    ignore: (file: string) => {
+      if (!file) return false;
+      // Allow Vite build output
+      if (file.startsWith("/.vite")) return false;
+      // Selectively keep native module dependencies
+      if (file.startsWith("/node_modules")) {
+        const parts = file.split("/");
+        const moduleName = parts[2];
+        const keepModules = [
+          "better-sqlite3",
+          "bindings",
+          "file-uri-to-path",
+          "prebuild-install",
+          "node-addon-api",
+        ];
+        return !keepModules.some((m) => moduleName === m);
+      }
+      return true;
+    },
   },
   rebuildConfig: {},
   makers: [
