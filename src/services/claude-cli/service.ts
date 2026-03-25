@@ -1,5 +1,6 @@
 import { Command, CommandExecutor } from "@effect/platform";
 import { Effect, Fiber, Layer, Schema, Stream } from "effect";
+import { annotations } from "../diagnostics";
 import {
   ClaudeCliParseError,
   ClaudeCliProcessError,
@@ -55,6 +56,7 @@ export const buildArgs = (
 const buildStream = (
   params: QueryParams | ResumeParams | ContinueParams,
   ParamType: ParamClass,
+  operation: string,
 ): Stream.Stream<
   ClaudeEvent,
   ClaudeCliSpawnError | ClaudeCliParseError | ClaudeCliProcessError,
@@ -66,11 +68,22 @@ const buildStream = (
 
   return Stream.unwrapScoped(
     Effect.gen(function* () {
+      yield* Effect.logInfo("Spawning CLI process").pipe(
+        Effect.annotateLogs("args", args.join(" ")),
+      );
+
       const process = yield* Command.start(command).pipe(
+        Effect.tapError((cause) =>
+          Effect.logError("CLI spawn failed").pipe(
+            Effect.annotateLogs("error", String(cause)),
+          ),
+        ),
         Effect.mapError(
           (cause) => new ClaudeCliSpawnError({ message: String(cause), cause }),
         ),
       );
+
+      yield* Effect.logInfo("CLI process started");
 
       // Collect stderr concurrently; forkScoped ties the fiber lifetime to the stream scope
       const stderrFiber = yield* process.stderr.pipe(
@@ -93,8 +106,17 @@ const buildStream = (
               }),
           ),
         );
+
+        yield* Effect.logInfo("CLI process exited").pipe(
+          Effect.annotateLogs("exitCode", exitCode),
+        );
+
         if (exitCode !== 0) {
           const stderr = yield* Fiber.join(stderrFiber);
+          yield* Effect.logError("CLI process failed").pipe(
+            Effect.annotateLogs("exitCode", exitCode),
+            Effect.annotateLogs("stderr", stderr),
+          );
           return yield* new ClaudeCliProcessError({ exitCode, stderr });
         }
       });
@@ -108,6 +130,22 @@ const buildStream = (
         Stream.filter((line) => line.trim().length > 0),
         Stream.mapEffect((line) =>
           Schema.decodeUnknown(Schema.parseJson(ClaudeEvent))(line).pipe(
+            Effect.tap((event) =>
+              Effect.logDebug("Event decoded").pipe(
+                Effect.annotateLogs("eventType", event.type),
+                Effect.annotateLogs(
+                  annotations.sessionId,
+                  "session_id" in event
+                    ? (event.session_id ?? "unknown")
+                    : "unknown",
+                ),
+              ),
+            ),
+            Effect.tapError(() =>
+              Effect.logWarning("Event parse failed").pipe(
+                Effect.annotateLogs("raw", line.slice(0, 200)),
+              ),
+            ),
             Effect.mapError(
               (cause) => new ClaudeCliParseError({ raw: line, cause }),
             ),
@@ -118,7 +156,11 @@ const buildStream = (
       );
 
       return eventStream;
-    }),
+    }).pipe(
+      Effect.annotateLogs(annotations.service, "cli"),
+      Effect.annotateLogs(annotations.operation, operation),
+      Effect.withSpan("cli-spawn"),
+    ),
   );
 };
 
@@ -126,6 +168,9 @@ export const ClaudeCliLive = Layer.effect(
   ClaudeCli,
   Effect.gen(function* () {
     const executor = yield* CommandExecutor.CommandExecutor;
+
+    yield* Effect.logInfo("ClaudeCliLive layer constructed");
+
     const provide = <A, E>(
       stream: Stream.Stream<A, E, CommandExecutor.CommandExecutor>,
     ) =>
@@ -134,11 +179,12 @@ export const ClaudeCliLive = Layer.effect(
       );
 
     return {
-      query: (params: QueryParams) => provide(buildStream(params, QueryParams)),
+      query: (params: QueryParams) =>
+        provide(buildStream(params, QueryParams, "query")),
       resume: (params: ResumeParams) =>
-        provide(buildStream(params, ResumeParams)),
+        provide(buildStream(params, ResumeParams, "resume")),
       cont: (params: ContinueParams) =>
-        provide(buildStream(params, ContinueParams)),
+        provide(buildStream(params, ContinueParams, "cont")),
     };
-  }),
+  }).pipe(Effect.annotateLogs(annotations.service, "cli")),
 );
