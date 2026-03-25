@@ -51,9 +51,7 @@ describe("formatDatabaseError", () => {
 
   it("formats DatabaseCorruptionError correctly", () => {
     const err = new DatabaseCorruptionError({ message: "bad" });
-    expect(formatDatabaseError(err)).toBe(
-      "Database corruption detected: bad",
-    );
+    expect(formatDatabaseError(err)).toBe("Database corruption detected: bad");
   });
 
   it("formats DatabaseQueryError correctly", () => {

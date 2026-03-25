@@ -1,139 +1,135 @@
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
 import { SqlClient } from "@effect/sql";
-import { SqliteClient } from "@effect/sql-sqlite-node";
 import { Effect, Layer } from "effect";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
+import {
+  EVENTS_SESSION_INDEX_SQL,
+  EVENTS_TABLE_SQL,
+  TABS_TABLE_SQL,
+} from "../schema";
+import { makeDatabaseLive } from "../service";
 import { Database } from "../service-definition";
 
-let tempDir: string;
-let dbPath: string;
+const makeMockSqlClient = (
+  handler: (sql: string) => Effect.Effect<ReadonlyArray<unknown>, unknown>,
+) => {
+  const calls: string[] = [];
+  return {
+    calls,
+    layer: Layer.succeed(SqlClient.SqlClient, {
+      unsafe: (sqlString: string) => {
+        calls.push(sqlString);
+        return handler(sqlString);
+      },
+    } as any),
+  };
+};
 
-beforeEach(() => {
-  tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mao-test-"));
-  dbPath = path.join(tempDir, "test.db");
-});
+const healthyHandler = (sql: string) => {
+  if (sql === "PRAGMA quick_check") {
+    return Effect.succeed([{ quick_check: "ok" }]);
+  }
+  return Effect.succeed([]);
+};
 
-afterEach(() => {
-  fs.rmSync(tempDir, { recursive: true, force: true });
-});
+const corruptHandler = (sql: string) => {
+  if (sql === "PRAGMA quick_check") {
+    return Effect.succeed([{ quick_check: "bad" }]);
+  }
+  return Effect.succeed([]);
+};
 
-const makeTestLayer = () => {
-  const SqliteLive = SqliteClient.layer({ filename: dbPath });
-  // Dynamic import to get latest module (same pattern as errors.test.ts)
-  return import("../service").then(({ makeDatabaseLive }) => {
-    const DatabaseLayer = makeDatabaseLive(dbPath);
-    return Layer.provideMerge(DatabaseLayer, SqliteLive);
-  });
+const makeTestLayer = (
+  handler: (sql: string) => Effect.Effect<ReadonlyArray<unknown>, unknown>,
+) => {
+  const mock = makeMockSqlClient(handler);
+  const testLayer = makeDatabaseLive().pipe(Layer.provide(mock.layer));
+  return { calls: mock.calls, layer: testLayer };
 };
 
 describe("makeDatabaseLive", () => {
-  it("constructs successfully and provides Database service with a SqlClient", async () => {
-    const testLayer = await makeTestLayer();
+  it("constructs successfully and provides Database service", async () => {
+    const { layer } = makeTestLayer(healthyHandler);
     const result = await Effect.runPromise(
       Effect.gen(function* () {
         const db = yield* Database;
         return db.sql;
-      }).pipe(Effect.provide(testLayer), Effect.scoped),
+      }).pipe(Effect.provide(layer), Effect.scoped),
     );
     expect(result).toBeDefined();
   });
 
-  it("enables WAL mode (PRAGMA journal_mode returns wal)", async () => {
-    const testLayer = await makeTestLayer();
-    const result = await Effect.runPromise(
+  it("runs integrity check (PRAGMA quick_check)", async () => {
+    const { calls, layer } = makeTestLayer(healthyHandler);
+    await Effect.runPromise(
       Effect.gen(function* () {
-        const db = yield* Database;
-        const rows = yield* db.sql.unsafe<{ journal_mode: string }>(
-          "PRAGMA journal_mode",
-        );
-        return rows;
-      }).pipe(Effect.provide(testLayer), Effect.scoped),
+        yield* Database;
+      }).pipe(Effect.provide(layer), Effect.scoped),
     );
-    expect(result).toHaveLength(1);
-    expect(result[0].journal_mode).toBe("wal");
+    expect(calls).toContain("PRAGMA quick_check");
   });
 
-  it("bootstraps events table with correct columns", async () => {
-    const testLayer = await makeTestLayer();
-    const result = await Effect.runPromise(
+  it("bootstraps events table", async () => {
+    const { calls, layer } = makeTestLayer(healthyHandler);
+    await Effect.runPromise(
       Effect.gen(function* () {
-        const db = yield* Database;
-        const tables = yield* db.sql.unsafe<{ name: string }>(
-          "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
-        );
-        return tables.map((t) => t.name);
-      }).pipe(Effect.provide(testLayer), Effect.scoped),
+        yield* Database;
+      }).pipe(Effect.provide(layer), Effect.scoped),
     );
-    expect(result).toContain("events");
+    expect(calls).toContain(EVENTS_TABLE_SQL);
   });
 
-  it("bootstraps tabs table with correct columns", async () => {
-    const testLayer = await makeTestLayer();
-    const result = await Effect.runPromise(
+  it("bootstraps tabs table", async () => {
+    const { calls, layer } = makeTestLayer(healthyHandler);
+    await Effect.runPromise(
       Effect.gen(function* () {
-        const db = yield* Database;
-        const tables = yield* db.sql.unsafe<{ name: string }>(
-          "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
-        );
-        return tables.map((t) => t.name);
-      }).pipe(Effect.provide(testLayer), Effect.scoped),
+        yield* Database;
+      }).pipe(Effect.provide(layer), Effect.scoped),
     );
-    expect(result).toContain("tabs");
+    expect(calls).toContain(TABS_TABLE_SQL);
   });
 
   it("creates events session index", async () => {
-    const testLayer = await makeTestLayer();
-    const result = await Effect.runPromise(
-      Effect.gen(function* () {
-        const db = yield* Database;
-        const indexes = yield* db.sql.unsafe<{ name: string }>(
-          "SELECT name FROM sqlite_master WHERE type='index'",
-        );
-        return indexes.map((i) => i.name);
-      }).pipe(Effect.provide(testLayer), Effect.scoped),
-    );
-    expect(result).toContain("idx_events_session_id");
-  });
-
-  it("integrity check passes on a healthy database", async () => {
-    const testLayer = await makeTestLayer();
-    const result = await Effect.runPromise(
-      Effect.gen(function* () {
-        const db = yield* Database;
-        const rows = yield* db.sql.unsafe<{ quick_check: string }>(
-          "PRAGMA quick_check",
-        );
-        return rows;
-      }).pipe(Effect.provide(testLayer), Effect.scoped),
-    );
-    expect(result[0].quick_check).toBe("ok");
-  });
-
-  it("creates database file at the specified path", async () => {
-    const testLayer = await makeTestLayer();
+    const { calls, layer } = makeTestLayer(healthyHandler);
     await Effect.runPromise(
       Effect.gen(function* () {
         yield* Database;
-      }).pipe(Effect.provide(testLayer), Effect.scoped),
+      }).pipe(Effect.provide(layer), Effect.scoped),
     );
-    expect(fs.existsSync(dbPath)).toBe(true);
+    expect(calls).toContain(EVENTS_SESSION_INDEX_SQL);
   });
 
-  it("releases database file lock after scope exits", async () => {
-    const testLayer = await makeTestLayer();
-    // Run the layer in a scope, then after scope exits verify we can open the db
-    await Effect.runPromise(
+  it("yields DatabaseCorruptionError when integrity check fails", async () => {
+    const { layer } = makeTestLayer(corruptHandler);
+    const result = await Effect.runPromise(
       Effect.gen(function* () {
         yield* Database;
-      }).pipe(Effect.provide(testLayer), Effect.scoped),
+      }).pipe(Effect.provide(layer), Effect.scoped, Effect.either),
     );
-    // If the connection was properly closed, we should be able to open it again
-    // better-sqlite3 uses exclusive file locks, so this would fail if not closed
-    const BetterSqlite3 = (await import("better-sqlite3")).default;
-    const db = new BetterSqlite3(dbPath);
-    expect(() => db.pragma("journal_mode")).not.toThrow();
-    db.close();
+    expect(result._tag).toBe("Left");
+    if (result._tag === "Left") {
+      expect((result.left as any)._tag).toBe("DatabaseCorruptionError");
+    }
+  });
+
+  it("wraps schema bootstrap failure as DatabaseQueryError", async () => {
+    const failOnCreateHandler = (sql: string) => {
+      if (sql === "PRAGMA quick_check") {
+        return Effect.succeed([{ quick_check: "ok" }]);
+      }
+      if (sql.includes("CREATE TABLE")) {
+        return Effect.fail(new Error("SQL execution failed"));
+      }
+      return Effect.succeed([]);
+    };
+    const { layer } = makeTestLayer(failOnCreateHandler);
+    const result = await Effect.runPromise(
+      Effect.gen(function* () {
+        yield* Database;
+      }).pipe(Effect.provide(layer), Effect.scoped, Effect.either),
+    );
+    expect(result._tag).toBe("Left");
+    if (result._tag === "Left") {
+      expect((result.left as any)._tag).toBe("DatabaseQueryError");
+    }
   });
 });

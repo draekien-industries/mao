@@ -19,11 +19,10 @@ if (started) {
 
 const dbPath = path.join(app.getPath("userData"), "mao.db");
 mkdirSync(path.dirname(dbPath), { recursive: true });
-if (!app.isPackaged)
-  console.log(`[mao:lifecycle] database path: ${dbPath}`);
+if (!app.isPackaged) console.log(`[mao:lifecycle] database path: ${dbPath}`);
 
 const SqliteLive = SqliteClient.layer({ filename: dbPath });
-const DatabaseLayer = makeDatabaseLive(dbPath);
+const DatabaseLayer = makeDatabaseLive();
 
 const BaseLayer = Layer.provideMerge(
   ClaudeRpcHandlers,
