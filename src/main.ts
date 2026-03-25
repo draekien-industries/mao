@@ -8,19 +8,25 @@ import {
   ClaudeRpcHandlers,
   startRpcServer,
 } from "./services/claude-rpc/server";
+import { DevLogger, ProdLogger } from "./services/diagnostics";
 
 if (started) {
   app.quit();
 }
 
-const ServerLayer = Layer.provideMerge(
+const BaseLayer = Layer.provideMerge(
   ClaudeRpcHandlers,
   Layer.provideMerge(ClaudeCliLive, NodeContext.layer),
+);
+
+const ServerLayer = BaseLayer.pipe(
+  Layer.provide(app.isPackaged ? ProdLogger : DevLogger),
 );
 
 const runtime = ManagedRuntime.make(ServerLayer);
 
 const createWindow = () => {
+  if (!app.isPackaged) console.log("[mao:lifecycle] creating window");
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
@@ -45,6 +51,7 @@ const createWindow = () => {
 };
 
 app.on("ready", () => {
+  if (!app.isPackaged) console.log("[mao:lifecycle] app ready");
   createWindow();
   runtime.runFork(startRpcServer.pipe(Effect.scoped));
 });
@@ -66,9 +73,12 @@ app.on("before-quit", async (e) => {
   if (isQuitting) return;
   isQuitting = true;
   e.preventDefault();
+  if (!app.isPackaged) console.log("[mao:lifecycle] disposing runtime");
   try {
     await runtime.dispose();
   } finally {
+    if (!app.isPackaged)
+      console.log("[mao:lifecycle] runtime disposed, exiting");
     app.exit(0);
   }
 });
