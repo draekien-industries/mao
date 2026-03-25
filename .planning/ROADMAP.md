@@ -30,7 +30,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. WAL mode is active and the database connection closes cleanly when the app quits (no orphaned WAL files on next startup)
   4. A startup integrity check runs and logs a warning if database corruption is detected
   5. The database connection is provided as an Effect Layer with acquireRelease semantics that other services can depend on
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 01-01-PLAN.md — Install SQLite dependencies, configure native module packaging, create Database service contracts
+- [ ] 01-02-PLAN.md — Implement DatabaseLive Layer with integrity check and schema bootstrap, wire into main.ts, write tests
 
 ### Phase 2: Storage Services
 **Goal**: Effect services exist for appending events and managing tab metadata, with correct partitioning by session
@@ -71,7 +74,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Success Criteria** (what must be TRUE):
   1. On app reopen, all previously open tabs are restored with correct project context (cwd, git branch, display label) and the previously active tab is focused
   2. Each restored tab shows its full conversation history as it appeared before the app was closed
-  3. Quitting the app (via menu, OS close, or keyboard shortcut) flushes or explicitly discards any pending writes before the database connection closes — no data is silently lost
+  3. Quitting the app (via menu, OS close, or keyboard shortcut) flushes or explicitly discards pending writes before the database connection closes — no data is silently lost
 **Plans**: TBD
 **UI hint**: yes
 
@@ -82,7 +85,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. SQLite Infrastructure | 0/? | Not started | - |
+| 1. SQLite Infrastructure | 0/2 | Planning complete | - |
 | 2. Storage Services | 0/? | Not started | - |
 | 3. Write Pipeline | 0/? | Not started | - |
 | 4. Session Reconstruction | 0/? | Not started | - |
