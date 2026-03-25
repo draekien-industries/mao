@@ -5,10 +5,11 @@ describe("ClaudeCliSpawnError", () => {
     const { ClaudeCliSpawnError } = await import("../errors");
     const err = new ClaudeCliSpawnError({
       message: "not found",
-      cause: new Error("ENOENT"),
+      cause: "Error: ENOENT",
     });
     expect(err._tag).toBe("ClaudeCliSpawnError");
     expect(err.message).toBe("not found");
+    expect(err.cause).toBe("Error: ENOENT");
   });
 });
 
@@ -17,10 +18,11 @@ describe("ClaudeCliParseError", () => {
     const { ClaudeCliParseError } = await import("../errors");
     const err = new ClaudeCliParseError({
       raw: "{bad}",
-      cause: new SyntaxError("Unexpected token"),
+      cause: "SyntaxError: Unexpected token",
     });
     expect(err._tag).toBe("ClaudeCliParseError");
     expect(err.raw).toBe("{bad}");
+    expect(err.cause).toBe("SyntaxError: Unexpected token");
   });
 });
 
