@@ -22,3 +22,14 @@ export const ClaudeCliErrorSchema = Schema.Union(
 );
 
 export type ClaudeCliError = Schema.Schema.Type<typeof ClaudeCliErrorSchema>;
+
+export function formatClaudeCliError(err: ClaudeCliError): string {
+  switch (err._tag) {
+    case "ClaudeCliSpawnError":
+      return `Failed to start Claude CLI: ${err.message}`;
+    case "ClaudeCliProcessError":
+      return `Claude CLI exited with code ${err.exitCode}: ${err.stderr}`;
+    case "ClaudeCliParseError":
+      return `Failed to parse CLI output: ${err.raw}`;
+  }
+}

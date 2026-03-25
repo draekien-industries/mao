@@ -7,11 +7,11 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   return (
-    <>
+    <div className="h-screen">
       <Outlet />
       {import.meta.env.DEV && (
         <TanStackRouterDevtools position="bottom-right" />
       )}
-    </>
+    </div>
   );
 }
