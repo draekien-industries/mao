@@ -10,7 +10,7 @@ import {
   isSystemInit,
   isTextDelta,
 } from "@/services/claude-cli/events";
-import { QueryParams } from "@/services/claude-cli/params";
+import { QueryParams, ResumeParams } from "@/services/claude-cli/params";
 import { ClaudeCli } from "@/services/claude-cli/service-definition";
 import { useRuntime } from "@/services/claude-rpc/runtime";
 
@@ -46,12 +46,14 @@ export function useClaudeChat() {
 
     const program = Effect.gen(function* () {
       const cli = yield* ClaudeCli;
-      const stream = cli.query(
-        new QueryParams({
-          prompt,
-          session_id: sessionIdRef.current ?? undefined,
-        }),
-      );
+      const stream = sessionIdRef.current
+        ? cli.resume(
+            new ResumeParams({
+              prompt,
+              session_id: sessionIdRef.current,
+            }),
+          )
+        : cli.query(new QueryParams({ prompt }));
 
       yield* Stream.runForEach(stream, (event) =>
         Effect.sync(() => {
