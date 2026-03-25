@@ -10,9 +10,9 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Infrastructure
 
 - [x] **INFRA-01**: Native module packaging configured (Vite externals, Forge AutoUnpackNativesPlugin, electron-rebuild) so better-sqlite3 works in packaged builds
-- [ ] **INFRA-02**: SQLite database created in Electron's app.getPath('userData') on first launch
-- [ ] **INFRA-03**: Database connection managed as Effect Layer with acquireRelease semantics for clean lifecycle
-- [ ] **INFRA-04**: WAL mode enabled via PRAGMA for crash resilience and atomic transactions
+- [x] **INFRA-02**: SQLite database created in Electron's app.getPath('userData') on first launch
+- [x] **INFRA-03**: Database connection managed as Effect Layer with acquireRelease semantics for clean lifecycle
+- [x] **INFRA-04**: WAL mode enabled via PRAGMA for crash resilience and atomic transactions
 
 ### Event Storage
 
@@ -43,7 +43,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Safety
 
 - [ ] **SAFE-01**: Graceful shutdown flushes or explicitly discards pending writes on app quit via before-quit event
-- [ ] **SAFE-02**: Database integrity check (PRAGMA quick_check) runs on startup and warns if corruption detected
+- [x] **SAFE-02**: Database integrity check (PRAGMA quick_check) runs on startup and warns if corruption detected
 
 ## v2 Requirements
 
@@ -77,9 +77,9 @@ Deferred to future release. Tracked but not in current roadmap.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | INFRA-01 | Phase 1 | Complete |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
-| INFRA-04 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Complete |
+| INFRA-03 | Phase 1 | Complete |
+| INFRA-04 | Phase 1 | Complete |
 | EVNT-01 | Phase 2 | Pending |
 | EVNT-02 | Phase 2 | Pending |
 | EVNT-03 | Phase 2 | Pending |
@@ -95,7 +95,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | RECON-02 | Phase 4 | Pending |
 | RECON-03 | Phase 4 | Pending |
 | SAFE-01 | Phase 5 | Pending |
-| SAFE-02 | Phase 1 | Pending |
+| SAFE-02 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 20 total

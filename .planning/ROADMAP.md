@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. The database connection is provided as an Effect Layer with acquireRelease semantics that other services can depend on
 **Plans:** 2 plans
 Plans:
-- [ ] 01-01-PLAN.md — Install SQLite dependencies, configure native module packaging, create Database service contracts
+- [x] 01-01-PLAN.md — Install SQLite dependencies, configure native module packaging, create Database service contracts
 - [ ] 01-02-PLAN.md — Implement DatabaseLive Layer with integrity check and schema bootstrap, wire into main.ts, write tests
 
 ### Phase 2: Storage Services
