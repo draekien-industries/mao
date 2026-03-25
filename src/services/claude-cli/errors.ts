@@ -15,13 +15,10 @@ export class ClaudeCliProcessError extends Schema.TaggedError<ClaudeCliProcessEr
   { exitCode: Schema.Number, stderr: Schema.String },
 ) {}
 
-export type ClaudeCliError =
-  | ClaudeCliSpawnError
-  | ClaudeCliParseError
-  | ClaudeCliProcessError;
-
 export const ClaudeCliErrorSchema = Schema.Union(
   ClaudeCliSpawnError,
   ClaudeCliParseError,
   ClaudeCliProcessError,
 );
+
+export type ClaudeCliError = Schema.Schema.Type<typeof ClaudeCliErrorSchema>;
