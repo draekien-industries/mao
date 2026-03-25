@@ -122,9 +122,6 @@ const buildStream = (
   );
 };
 
-// Note: the spec uses Layer.succeed here. This plan intentionally uses Layer.effect instead,
-// so CommandExecutor is captured once at build time and provided to each stream via
-// Stream.provideService — keeping the service interface's R type = never (self-contained streams).
 export const ClaudeCliLive = Layer.effect(
   ClaudeCli,
   Effect.gen(function* () {
@@ -140,7 +137,7 @@ export const ClaudeCliLive = Layer.effect(
       query: (params: QueryParams) => provide(buildStream(params, QueryParams)),
       resume: (params: ResumeParams) =>
         provide(buildStream(params, ResumeParams)),
-      continue_: (params: ContinueParams) =>
+      cont: (params: ContinueParams) =>
         provide(buildStream(params, ContinueParams)),
     };
   }),

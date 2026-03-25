@@ -13,7 +13,7 @@ export class ClaudeCli extends Context.Tag("ClaudeCli")<
     readonly resume: (
       params: ResumeParams,
     ) => Stream.Stream<ClaudeEvent, ClaudeCliError, never>;
-    readonly continue_: (
+    readonly cont: (
       params: ContinueParams,
     ) => Stream.Stream<ClaudeEvent, ClaudeCliError, never>;
   }

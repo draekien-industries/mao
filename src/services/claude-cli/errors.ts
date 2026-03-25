@@ -19,3 +19,9 @@ export type ClaudeCliError =
   | ClaudeCliSpawnError
   | ClaudeCliParseError
   | ClaudeCliProcessError;
+
+export const ClaudeCliErrorSchema = Schema.Union(
+  ClaudeCliSpawnError,
+  ClaudeCliParseError,
+  ClaudeCliProcessError,
+);
