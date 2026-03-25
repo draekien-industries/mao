@@ -76,7 +76,11 @@ const buildStream = (
           ),
         ),
         Effect.mapError(
-          (cause) => new ClaudeCliSpawnError({ message: String(cause), cause }),
+          (cause) =>
+            new ClaudeCliSpawnError({
+              message: String(cause),
+              cause: String(cause),
+            }),
         ),
       );
 
@@ -87,7 +91,11 @@ const buildStream = (
         Stream.decodeText(),
         Stream.runFold("", (acc, s) => acc + s),
         Effect.mapError(
-          (cause) => new ClaudeCliSpawnError({ message: String(cause), cause }),
+          (cause) =>
+            new ClaudeCliSpawnError({
+              message: String(cause),
+              cause: String(cause),
+            }),
         ),
         Effect.forkScoped,
       );
@@ -99,7 +107,7 @@ const buildStream = (
             (cause) =>
               new ClaudeCliSpawnError({
                 message: "Failed to get process exit code",
-                cause,
+                cause: String(cause),
               }),
           ),
         );
@@ -120,7 +128,11 @@ const buildStream = (
 
       const eventStream = process.stdout.pipe(
         Stream.mapError(
-          (cause) => new ClaudeCliSpawnError({ message: String(cause), cause }),
+          (cause) =>
+            new ClaudeCliSpawnError({
+              message: String(cause),
+              cause: String(cause),
+            }),
         ),
         Stream.decodeText(),
         Stream.splitLines,
@@ -144,7 +156,8 @@ const buildStream = (
               ),
             ),
             Effect.mapError(
-              (cause) => new ClaudeCliParseError({ raw: line, cause }),
+              (cause) =>
+                new ClaudeCliParseError({ raw: line, cause: String(cause) }),
             ),
           ),
         ),
