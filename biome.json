@@ -149,26 +149,26 @@
         "rules": {
           "complexity": { "noArguments": "error" },
           "correctness": {
-            "noConstAssign": "off",
-            "noGlobalObjectCalls": "off",
-            "noInvalidConstructorSuper": "off",
-            "noSetterReturn": "off",
-            "noUndeclaredVariables": "off",
-            "noUnreachable": "off",
-            "noUnreachableSuper": "off",
-            "useValidTypeof": "off"
+            "noConstAssign": "error",
+            "noGlobalObjectCalls": "error",
+            "noInvalidConstructorSuper": "error",
+            "noSetterReturn": "error",
+            "noUndeclaredVariables": "error",
+            "noUnreachable": "error",
+            "noUnreachableSuper": "error",
+            "useValidTypeof": "error"
           },
           "style": { "useConst": "error" },
           "suspicious": {
-            "noDuplicateClassMembers": "off",
-            "noDuplicateObjectKeys": "off",
-            "noDuplicateParameters": "off",
-            "noFunctionAssign": "off",
-            "noImportAssign": "off",
-            "noRedeclare": "off",
-            "noUnsafeNegation": "off",
+            "noDuplicateClassMembers": "error",
+            "noDuplicateObjectKeys": "error",
+            "noDuplicateParameters": "error",
+            "noFunctionAssign": "error",
+            "noImportAssign": "error",
+            "noRedeclare": "error",
+            "noUnsafeNegation": "error",
             "noVar": "error",
-            "useGetterReturn": "off"
+            "useGetterReturn": "error"
           }
         }
       }
