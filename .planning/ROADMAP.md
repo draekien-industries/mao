@@ -44,7 +44,11 @@ Plans:
   2. User messages can be stored as synthetic user_message events alongside CLI events in the same session
   3. Events queried for a given session_id are returned in strict sequence_number order, independent of other sessions
   4. Tab metadata (repository/cwd, git branch, session ID, tab order, display label) can be created, updated, and queried
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 02-01-PLAN.md — Update tabs schema (D-06), define StoredEvent/UserMessageEvent schemas, create EventStore and TabStore service contracts
+- [ ] 02-02-PLAN.md — Implement EventStore service with append, getBySession, purgeSession and full test coverage
+- [ ] 02-03-PLAN.md — Implement TabStore service with CRUD and cascade delete, wire both stores into main.ts
 
 ### Phase 3: Write Pipeline
 **Goal**: The existing CLI stream is transparently intercepted so complete events flow into the database without changing what the renderer receives
@@ -86,7 +90,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. SQLite Infrastructure | 0/2 | Planning complete | - |
-| 2. Storage Services | 0/? | Not started | - |
+| 2. Storage Services | 0/3 | Planning complete | - |
 | 3. Write Pipeline | 0/? | Not started | - |
 | 4. Session Reconstruction | 0/? | Not started | - |
 | 5. Renderer Integration | 0/? | Not started | - |
