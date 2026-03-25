@@ -1,5 +1,7 @@
+import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { NodeContext } from "@effect/platform-node";
+import { SqliteClient } from "@effect/sql-sqlite-node";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { app, BrowserWindow } from "electron";
 import started from "electron-squirrel-startup";
@@ -8,15 +10,30 @@ import {
   ClaudeRpcHandlers,
   startRpcServer,
 } from "./services/claude-rpc/server";
+import { makeDatabaseLive } from "./services/database/service";
 import { DevLogger, ProdLogger } from "./services/diagnostics";
 
 if (started) {
   app.quit();
 }
 
+const dbPath = path.join(app.getPath("userData"), "mao.db");
+mkdirSync(path.dirname(dbPath), { recursive: true });
+if (!app.isPackaged)
+  console.log(`[mao:lifecycle] database path: ${dbPath}`);
+
+const SqliteLive = SqliteClient.layer({ filename: dbPath });
+const DatabaseLayer = makeDatabaseLive(dbPath);
+
 const BaseLayer = Layer.provideMerge(
   ClaudeRpcHandlers,
-  Layer.provideMerge(ClaudeCliLive, NodeContext.layer),
+  Layer.provideMerge(
+    ClaudeCliLive,
+    Layer.provideMerge(
+      DatabaseLayer,
+      Layer.provideMerge(SqliteLive, NodeContext.layer),
+    ),
+  ),
 );
 
 const ServerLayer = BaseLayer.pipe(
