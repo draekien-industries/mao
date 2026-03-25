@@ -44,9 +44,6 @@ export const buildArgs = (
         if (Array.isArray(value) && value.length > 0)
           args.push(def.flag, ...value);
         break;
-      case "compound-boolean":
-        if (value === true) args.push(...def.flags);
-        break;
     }
   }
 

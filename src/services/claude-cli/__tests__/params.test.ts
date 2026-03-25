@@ -8,7 +8,14 @@ describe("buildArgs", () => {
     const { QueryParams } = await import("../params");
     expect(
       buildArgs(new QueryParams({ prompt: "Hello" }), QueryParams),
-    ).toEqual(["--output-format", "stream-json", "-p", "Hello"]);
+    ).toEqual([
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "-p",
+      "Hello",
+    ]);
   });
 
   it("--model", async () => {
@@ -138,18 +145,7 @@ describe("buildArgs", () => {
     expect(args).toContain("0");
   });
 
-  it("--verbose and --include-partial-messages together", async () => {
-    const { buildArgs } = await import("../service");
-    const { QueryParams } = await import("../params");
-    const args = buildArgs(
-      new QueryParams({ prompt: "Hi", include_partial_messages: true }),
-      QueryParams,
-    );
-    expect(args).toContain("--verbose");
-    expect(args).toContain("--include-partial-messages");
-  });
-
-  it("all classes emit --output-format stream-json from commandFlags", async () => {
+  it("all classes emit base flags from commandFlags", async () => {
     const { buildArgs } = await import("../service");
     const { QueryParams, ResumeParams, ContinueParams } = await import(
       "../params"
@@ -164,6 +160,8 @@ describe("buildArgs", () => {
       const idx = args.indexOf("--output-format");
       expect(idx).toBeGreaterThanOrEqual(0);
       expect(args[idx + 1]).toBe("stream-json");
+      expect(args).toContain("--verbose");
+      expect(args).toContain("--include-partial-messages");
     }
   });
 

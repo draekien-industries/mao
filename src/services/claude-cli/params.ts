@@ -4,8 +4,7 @@ export type FlagDef =
   | { readonly kind: "string"; readonly flag: string }
   | { readonly kind: "number"; readonly flag: string }
   | { readonly kind: "boolean"; readonly flag: string }
-  | { readonly kind: "variadic"; readonly flag: string }
-  | { readonly kind: "compound-boolean"; readonly flags: readonly string[] };
+  | { readonly kind: "variadic"; readonly flag: string };
 
 const Flags = {
   prompt: { kind: "string", flag: "-p" },
@@ -18,10 +17,6 @@ const Flags = {
   session_id: { kind: "string", flag: "--session-id" },
   resume: { kind: "string", flag: "--resume" },
   name: { kind: "string", flag: "--name" },
-  include_partial_messages: {
-    kind: "compound-boolean",
-    flags: ["--verbose", "--include-partial-messages"],
-  },
   fork: { kind: "boolean", flag: "--fork-session" },
 } as const satisfies Record<string, FlagDef>;
 
@@ -33,7 +28,6 @@ const sharedSchemaFields = {
   max_turns: Schema.optional(Schema.Number),
   max_budget_usd: Schema.optional(Schema.Number),
   bare: Schema.optional(Schema.Boolean),
-  include_partial_messages: Schema.optional(Schema.Boolean),
   name: Schema.optional(Schema.String),
   cwd: Schema.optional(Schema.String),
 };
@@ -46,11 +40,15 @@ const sharedFlagMap: Record<string, FlagDef> = {
   max_turns: Flags.max_turns,
   max_budget_usd: Flags.max_budget_usd,
   bare: Flags.bare,
-  include_partial_messages: Flags.include_partial_messages,
   name: Flags.name,
 };
 
-const baseCommandFlags = ["--output-format", "stream-json"] as const;
+const baseCommandFlags = [
+  "--output-format",
+  "stream-json",
+  "--verbose",
+  "--include-partial-messages",
+] as const;
 
 export class QueryParams extends Schema.Class<QueryParams>("QueryParams")({
   ...sharedSchemaFields,
