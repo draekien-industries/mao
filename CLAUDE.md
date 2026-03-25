@@ -13,3 +13,11 @@
 - When using `gsd` plugin, reference [GSD CLAUDE.md](./.planning/CLAUDE.md)
 
 </hints>
+
+<rules>
+
+- Run `npm run check:write` after you make a change and resolve any issues.
+- Run `npm run typecheck` after you make a change and resolve any issues.
+- Run `npm test` after you finish implementation to check if you have introduced any regressions.
+
+</rules>
