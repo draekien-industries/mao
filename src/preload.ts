@@ -1,3 +1,4 @@
+import { Effect } from "effect";
 import { contextBridge, ipcRenderer } from "electron";
 import {
   RPC_FROM_CLIENT,
