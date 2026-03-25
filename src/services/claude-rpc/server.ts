@@ -48,7 +48,7 @@ export const startRpcServer = Effect.gen(function* () {
           Effect.annotateLogs(annotations.service, "rpc"),
         ),
       );
-      event.sender.on("destroyed", () => {
+      event.sender.once("destroyed", () => {
         clients.delete(clientId);
         Runtime.runFork(rt)(
           Effect.gen(function* () {
