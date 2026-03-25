@@ -24,11 +24,11 @@ const ElectronClientProtocol = Layer.scoped(
     Effect.gen(function* () {
       const rt = yield* Effect.runtime<never>();
 
-      const unsubscribe = window.electronAPI.rpc.onMessage<FromServerEncoded>(
-        (message) => {
-          Runtime.runFork(rt)(write(message));
-        },
-      );
+      // IPC transport boundary — Electron gives unknown, but RpcServer.make
+      // encodes all messages as FromServerEncoded before sending via IPC.
+      const unsubscribe = window.electronAPI.rpc.onMessage((message) => {
+        Runtime.runFork(rt)(write(message as FromServerEncoded));
+      });
 
       yield* Effect.addFinalizer(() => Effect.sync(() => unsubscribe()));
 
