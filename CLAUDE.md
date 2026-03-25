@@ -8,3 +8,10 @@
 6. After implementing and validating your implementation against the plan, use `simplify` to perform a code review and action any recommendations
 
 </preferred-workflow>
+
+<code-style>
+
+- NEVER use `as` type casting unless absolutely necessary. Prefer decoding via Effect Schema or type narrowing.
+- NEVER use `any` type unless absolutely necessary. For complex types use the built in type helpers such as `ReturnType`, `Parameters`, etc.
+
+</code-style>
