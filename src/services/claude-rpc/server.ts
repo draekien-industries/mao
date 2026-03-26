@@ -3,8 +3,11 @@ import { Effect, Layer, Mailbox, Option, Runtime } from "effect";
 import { ipcMain } from "electron";
 import { ClaudeCli } from "../claude-cli/service-definition";
 import { annotations } from "../diagnostics";
+import { PersistenceRpcGroup } from "../persistence-rpc/group";
 import { RPC_FROM_CLIENT, RPC_FROM_SERVER } from "./channels";
 import { ClaudeRpcGroup } from "./group";
+
+const MergedRpcGroup = ClaudeRpcGroup.merge(PersistenceRpcGroup);
 
 export const ClaudeRpcHandlers = ClaudeRpcGroup.toLayer(
   Effect.gen(function* () {
@@ -99,7 +102,7 @@ const ElectronServerProtocol = Layer.scoped(
 
 export const startRpcServer = Effect.gen(function* () {
   yield* Effect.logInfo("RPC server starting");
-  return yield* RpcServer.make(ClaudeRpcGroup);
+  return yield* RpcServer.make(MergedRpcGroup);
 }).pipe(
   Effect.provide(ElectronServerProtocol),
   Effect.annotateLogs(annotations.service, "rpc"),

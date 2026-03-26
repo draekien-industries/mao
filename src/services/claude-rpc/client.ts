@@ -5,7 +5,10 @@ import { Effect, Layer, Runtime, Stream } from "effect";
 import type { ClaudeCliError } from "../claude-cli/errors";
 import { ClaudeCliSpawnError } from "../claude-cli/errors";
 import { ClaudeCli } from "../claude-cli/service-definition";
+import { PersistenceRpcGroup } from "../persistence-rpc/group";
 import { ClaudeRpcGroup } from "./group";
+
+const MergedRpcGroup = ClaudeRpcGroup.merge(PersistenceRpcGroup);
 
 const mapRpcError = (err: ClaudeCliError | RpcClientError): ClaudeCliError =>
   err._tag === "RpcClientError"
@@ -45,7 +48,7 @@ const ElectronClientProtocol = Layer.scoped(
 export const ClaudeCliFromRpc = Layer.scoped(
   ClaudeCli,
   Effect.gen(function* () {
-    const client = yield* RpcClient.make(ClaudeRpcGroup);
+    const client = yield* RpcClient.make(MergedRpcGroup);
     return {
       query: (params) =>
         client.query(params).pipe(Stream.mapError(mapRpcError)),

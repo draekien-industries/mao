@@ -13,8 +13,10 @@ import {
 } from "./services/claude-rpc/server";
 import { makeEventStoreLive } from "./services/database/event-store/service";
 import { makeDatabaseLive } from "./services/database/service";
+import { makeSessionReconstructorLive } from "./services/database/session-reconstructor/service";
 import { makeTabStoreLive } from "./services/database/tab-store/service";
 import { DevLogger, ProdLogger } from "./services/diagnostics";
+import { PersistenceRpcHandlers } from "./services/persistence-rpc/handlers";
 
 if (started) {
   app.quit();
@@ -29,8 +31,11 @@ const DatabaseLayer = makeDatabaseLive();
 const EventStoreLayer = makeEventStoreLive();
 const TabStoreLayer = makeTabStoreLive();
 const PersistentLayer = makePersistentClaudeCliLive();
+const SessionReconstructorLayer = makeSessionReconstructorLive();
 
 const BaseLayer = ClaudeRpcHandlers.pipe(
+  Layer.provideMerge(PersistenceRpcHandlers),
+  Layer.provideMerge(SessionReconstructorLayer),
   Layer.provideMerge(PersistentLayer),
   Layer.provideMerge(ClaudeCliLive),
   Layer.provideMerge(TabStoreLayer),
