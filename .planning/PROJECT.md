@@ -20,11 +20,14 @@ Users can close the app and resume exactly where they left off — every tab, ev
 
 ### Active
 
-- [ ] Buffer partial/chunked stream messages, only persist the complete assembled message
-- [ ] Discard all partial output if user terminates a session mid-response
 - [ ] Reconstruct full chat session state from stored events on app reopen
 - [ ] Resume CLI sessions using the `--resume` flag with stored session IDs
 - [ ] Support multiple concurrent tabs, each with independent persistence
+
+### Validated in Phase 03: Write Pipeline
+
+- ✓ Buffer partial/chunked stream messages, only persist the complete assembled message — PersistentClaudeCli decorator persists only SystemInitEvent, AssistantMessageEvent, ResultEvent via Stream.tap
+- ✓ Discard all partial output if user terminates a session mid-response — only complete events are ever written; no partial data possible on interruption
 
 ### Validated in Phase 02: Storage Services
 
@@ -81,4 +84,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-26 after Phase 02 completion*
+*Last updated: 2026-03-26 after Phase 03 completion*
