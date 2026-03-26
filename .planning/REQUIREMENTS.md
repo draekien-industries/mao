@@ -18,7 +18,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **EVNT-01**: Each complete CLI event stored as an immutable row with session_id, sequence_number, event_type, event_data, and created_at
 - [ ] **EVNT-02**: User messages stored as synthetic user_message events for full conversation reconstruction
-- [ ] **EVNT-03**: Events partitioned by session_id for multi-tab independence
+- [x] **EVNT-03**: Events partitioned by session_id for multi-tab independence
 - [ ] **EVNT-04**: Sequence numbers maintain strict event ordering within each session
 
 ### Write Pipeline
@@ -30,7 +30,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Tab Management
 
-- [ ] **TAB-01**: Tab metadata stored: repository/cwd, git branch/worktree, Claude session ID, tab order, display label
+- [x] **TAB-01**: Tab metadata stored: repository/cwd, git branch/worktree, Claude session ID, tab order, display label
 - [ ] **TAB-02**: Active tab indicator persisted so the correct tab is focused on reopen
 - [ ] **TAB-03**: Full tab layout restored on app reopen with all tabs pointing to correct projects
 
@@ -82,13 +82,13 @@ Deferred to future release. Tracked but not in current roadmap.
 | INFRA-04 | Phase 1 | Complete |
 | EVNT-01 | Phase 2 | Pending |
 | EVNT-02 | Phase 2 | Pending |
-| EVNT-03 | Phase 2 | Pending |
+| EVNT-03 | Phase 2 | Complete |
 | EVNT-04 | Phase 2 | Pending |
 | WPIPE-01 | Phase 3 | Pending |
 | WPIPE-02 | Phase 3 | Pending |
 | WPIPE-03 | Phase 3 | Pending |
 | WPIPE-04 | Phase 3 | Pending |
-| TAB-01 | Phase 2 | Pending |
+| TAB-01 | Phase 2 | Complete |
 | TAB-02 | Phase 5 | Pending |
 | TAB-03 | Phase 5 | Pending |
 | RECON-01 | Phase 4 | Pending |
