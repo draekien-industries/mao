@@ -1,33 +1,111 @@
+import type { SqlClient as SqlClientNamespace } from "@effect/sql";
 import { SqlClient } from "@effect/sql";
-import { SqliteClient } from "@effect/sql-sqlite-node";
 import { Effect, Layer } from "effect";
 import { describe, expect, it } from "vitest";
-import {
-  EVENTS_SESSION_INDEX_SQL,
-  EVENTS_TABLE_SQL,
-} from "../../schema";
 import { Database } from "../../service-definition";
+import { isUserMessage } from "../schemas";
 import { makeEventStoreLive } from "../service";
 import { EventStore } from "../service-definition";
 
-// Create in-memory SQLite with schema bootstrapped
-const TestSqliteLayer = SqliteClient.layer({ filename: ":memory:" });
+// In-memory event store for mocking the SQL layer
+interface InMemoryEvent {
+  created_at: string;
+  event_data: string;
+  event_type: string;
+  id: number;
+  sequence_number: number;
+  session_id: string;
+}
 
-const TestDatabaseLayer = Layer.effect(
-  Database,
-  Effect.gen(function* () {
-    const sql = yield* SqlClient.SqlClient;
-    yield* sql.unsafe(EVENTS_TABLE_SQL);
-    yield* sql.unsafe(EVENTS_SESSION_INDEX_SQL);
-    return { sql };
-  }),
-);
+const makeInMemoryDatabase = () => {
+  let events: InMemoryEvent[] = [];
+  let nextId = 1;
 
-const TestLayer = makeEventStoreLive().pipe(
-  Layer.provide(
-    TestDatabaseLayer.pipe(Layer.provide(TestSqliteLayer)),
-  ),
-);
+  // Mock SqlClient that intercepts tagged template calls and simulates SQL
+  // The tagged template receives (strings, ...params) where strings is the
+  // TemplateStringsArray and params are the interpolated values
+  const sqlHandler = (
+    strings: TemplateStringsArray,
+    ...params: ReadonlyArray<unknown>
+  ) => {
+    const fullSql = strings.join("?").replace(/\s+/g, " ").trim();
+
+    if (fullSql.includes("INSERT INTO events")) {
+      const sessionId = params[0] as string;
+      // params[1] is sessionId again (for the subselect), but the tagged template
+      // flattens all interpolations in order: sessionId, sessionId, eventType, eventData
+      const eventType = params[2] as string;
+      const eventData = params[3] as string;
+      const maxSeq = events
+        .filter((e) => e.session_id === sessionId)
+        .reduce((max, e) => Math.max(max, e.sequence_number), 0);
+      events.push({
+        id: nextId++,
+        session_id: sessionId,
+        sequence_number: maxSeq + 1,
+        event_type: eventType,
+        event_data: eventData,
+        created_at: new Date().toISOString(),
+      });
+      return Effect.succeed([]);
+    }
+
+    if (fullSql.includes("SELECT") && fullSql.includes("FROM events")) {
+      const sessionId = params[0] as string;
+      const rows = events
+        .filter((e) => e.session_id === sessionId)
+        .sort((a, b) => a.sequence_number - b.sequence_number);
+      return Effect.succeed(rows);
+    }
+
+    if (fullSql.includes("DELETE FROM events")) {
+      const sessionId = params[0] as string;
+      events = events.filter((e) => e.session_id !== sessionId);
+      return Effect.succeed([]);
+    }
+
+    return Effect.succeed([]);
+  };
+
+  const mockSql = Object.assign(sqlHandler, {
+    unsafe: (rawSql: string) => Effect.succeed([]),
+    safe: undefined,
+    withoutTransforms: () => mockSql,
+    reserve: Effect.succeed({}),
+    withTransaction: <R, E, A>(self: Effect.Effect<A, E, R>) => self,
+  });
+
+  return {
+    reset: () => {
+      events = [];
+      nextId = 1;
+    },
+    layer: Layer.succeed(
+      SqlClient.SqlClient,
+      mockSql as unknown as SqlClientNamespace.SqlClient,
+    ),
+  };
+};
+
+const makeTestLayer = () => {
+  const db = makeInMemoryDatabase();
+
+  const testDatabaseLayer = Layer.effect(
+    Database,
+    Effect.gen(function* () {
+      const sql = yield* SqlClient.SqlClient;
+      return { sql };
+    }),
+  );
+
+  const testLayer = makeEventStoreLive().pipe(
+    Layer.provide(testDatabaseLayer.pipe(Layer.provide(db.layer))),
+  );
+
+  return { reset: db.reset, layer: testLayer };
+};
+
+const { reset, layer: TestLayer } = makeTestLayer();
 
 // Helper to run effects against the test layer
 const runTest = <A, E>(effect: Effect.Effect<A, E, EventStore>) =>
@@ -35,6 +113,7 @@ const runTest = <A, E>(effect: Effect.Effect<A, E, EventStore>) =>
 
 describe("EventStore", () => {
   it("append inserts an event and getBySession retrieves it", async () => {
+    reset();
     const result = await runTest(
       Effect.gen(function* () {
         const store = yield* EventStore;
@@ -57,6 +136,7 @@ describe("EventStore", () => {
   });
 
   it("append auto-assigns sequence numbers starting from 1", async () => {
+    reset();
     const result = await runTest(
       Effect.gen(function* () {
         const store = yield* EventStore;
@@ -90,6 +170,7 @@ describe("EventStore", () => {
   });
 
   it("append stores user_message events (EVNT-02)", async () => {
+    reset();
     const result = await runTest(
       Effect.gen(function* () {
         const store = yield* EventStore;
@@ -104,12 +185,14 @@ describe("EventStore", () => {
     );
     expect(result).toHaveLength(1);
     expect(result[0].type).toBe("user_message");
-    if (result[0].type === "user_message") {
+    expect(isUserMessage(result[0])).toBe(true);
+    if (isUserMessage(result[0])) {
       expect(result[0].prompt).toBe("hello");
     }
   });
 
   it("getBySession returns events in sequence_number order", async () => {
+    reset();
     const result = await runTest(
       Effect.gen(function* () {
         const store = yield* EventStore;
@@ -151,6 +234,7 @@ describe("EventStore", () => {
   });
 
   it("getBySession returns empty array for unknown session", async () => {
+    reset();
     const result = await runTest(
       Effect.gen(function* () {
         const store = yield* EventStore;
@@ -162,6 +246,7 @@ describe("EventStore", () => {
   });
 
   it("getBySession partitions by session_id (EVNT-03)", async () => {
+    reset();
     const result = await runTest(
       Effect.gen(function* () {
         const store = yield* EventStore;
@@ -192,6 +277,7 @@ describe("EventStore", () => {
   });
 
   it("purgeSession deletes all events for session", async () => {
+    reset();
     const result = await runTest(
       Effect.gen(function* () {
         const store = yield* EventStore;
@@ -219,6 +305,7 @@ describe("EventStore", () => {
   });
 
   it("purgeSession does not affect other sessions", async () => {
+    reset();
     const result = await runTest(
       Effect.gen(function* () {
         const store = yield* EventStore;
