@@ -78,6 +78,36 @@ Plans:
 - [x] 04-02-PLAN.md — SessionReconstructor service with TDD event fold logic
 - [x] 04-03-PLAN.md — Create PersistenceRpcGroup, wire merged RPC groups into server/client/main.ts
 
+### Phase 04.1: Atom state foundation + sidebar shell (INSERTED)
+
+**Goal:** Install effect-atom, migrate single-session chat from useClaudeChat hooks to atom-based state, build the two-tiered sidebar component with basic project/session structure. Proves the new architecture works end-to-end with one tab.
+**Requirements**: TBD
+**Depends on:** Phase 4
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 04.1 to break down)
+
+### Phase 04.2: Project and session management with git integration (INSERTED)
+
+**Goal:** Project registration via native directory picker, session creation with branch/worktree selection, git worktree creation via `git worktree add`, project removal with cascade. New RPC endpoints for git operations on the main process.
+**Requirements**: TBD
+**Depends on:** Phase 04.1
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 04.2 to break down)
+
+### Phase 04.3: Multi-tab orchestration with background streaming (INSERTED)
+
+**Goal:** Multiple concurrent CLI streams running in background across tabs, tab switching without losing state, status indicators (streaming/unread/error), soft concurrency limit with warning.
+**Requirements**: TBD
+**Depends on:** Phase 04.2
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 04.3 to break down)
+
 ### Phase 5: Renderer Integration
 **Goal**: Users experience seamless app restart — tabs restore, conversations appear, and quitting the app never loses data
 **Depends on**: Phase 4

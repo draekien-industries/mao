@@ -80,6 +80,12 @@ Recent decisions affecting current work:
 
 None yet.
 
+### Roadmap Evolution
+
+- Phase 04.1 scope narrowed to: Atom state foundation + sidebar shell (URGENT)
+- Phase 04.2 inserted after Phase 04.1: Project and session management with git integration (URGENT)
+- Phase 04.3 inserted after Phase 04.2: Multi-tab orchestration with background streaming (URGENT)
+
 ### Blockers/Concerns
 
 - Phase 1: The exact combination of @effect/sql-sqlite-node + Electron Forge Vite plugin has limited documented precedent. AutoUnpackNativesPlugin has a known regression (issue #3934). Validate during Phase 1 planning.
