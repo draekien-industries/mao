@@ -29,3 +29,9 @@ export const StoredEvent = Schema.Union(
 export type StoredEvent = typeof StoredEvent.Type;
 
 export const isUserMessage = Schema.is(UserMessageEvent);
+
+export interface StoredEventWithMeta {
+  readonly createdAt: string;
+  readonly event: StoredEvent;
+  readonly sequenceNumber: number;
+}

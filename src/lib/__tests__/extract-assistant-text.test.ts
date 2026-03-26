@@ -1,14 +1,16 @@
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
-import { AssistantMessageEvent } from "@/services/claude-cli/events";
+import {
+  AssistantMessageEvent,
+  TextBlock,
+  ToolUseBlock,
+} from "@/services/claude-cli/events";
 import { extractAssistantText } from "../extract-assistant-text";
 
-const makeEvent = (
-  content: ReadonlyArray<
-    | { type: "text"; text: string }
-    | { type: "tool_use"; id: string; name: string; input: unknown }
-  >,
-) =>
-  new AssistantMessageEvent({
+const decode = Schema.decodeUnknownSync(AssistantMessageEvent);
+
+const makeEvent = (content: ReadonlyArray<TextBlock | ToolUseBlock>) =>
+  decode({
     type: "assistant",
     message: {
       id: "msg_1",
