@@ -23,10 +23,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Write Pipeline
 
-- [ ] **WPIPE-01**: Stream deltas buffered in memory; only the complete AssistantMessageEvent is persisted
-- [ ] **WPIPE-02**: In-memory buffer discarded on user termination with no partial data written to the database
-- [ ] **WPIPE-03**: SystemInitEvent persisted immediately to capture session_id for resume capability
-- [ ] **WPIPE-04**: PersistentClaudeCli decorator wraps ClaudeCli via Stream.tap for transparent persistence
+- [x] **WPIPE-01**: Stream deltas buffered in memory; only the complete AssistantMessageEvent is persisted
+- [x] **WPIPE-02**: In-memory buffer discarded on user termination with no partial data written to the database
+- [x] **WPIPE-03**: SystemInitEvent persisted immediately to capture session_id for resume capability
+- [x] **WPIPE-04**: PersistentClaudeCli decorator wraps ClaudeCli via Stream.tap for transparent persistence
 
 ### Tab Management
 
@@ -84,10 +84,10 @@ Deferred to future release. Tracked but not in current roadmap.
 | EVNT-02 | Phase 2 | Pending |
 | EVNT-03 | Phase 2 | Complete |
 | EVNT-04 | Phase 2 | Pending |
-| WPIPE-01 | Phase 3 | Pending |
-| WPIPE-02 | Phase 3 | Pending |
-| WPIPE-03 | Phase 3 | Pending |
-| WPIPE-04 | Phase 3 | Pending |
+| WPIPE-01 | Phase 3 | Complete |
+| WPIPE-02 | Phase 3 | Complete |
+| WPIPE-03 | Phase 3 | Complete |
+| WPIPE-04 | Phase 3 | Complete |
 | TAB-01 | Phase 2 | Complete |
 | TAB-02 | Phase 5 | Pending |
 | TAB-03 | Phase 5 | Pending |
