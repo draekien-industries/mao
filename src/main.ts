@@ -22,9 +22,13 @@ if (started) {
   app.quit();
 }
 
+const devLog = (msg: string) => {
+  if (!app.isPackaged) console.log(`[mao:lifecycle] ${msg}`);
+};
+
 const dbPath = path.join(app.getPath("userData"), "mao.db");
 mkdirSync(path.dirname(dbPath), { recursive: true });
-if (!app.isPackaged) console.log(`[mao:lifecycle] database path: ${dbPath}`);
+devLog(`database path: ${dbPath}`);
 
 const SqliteLive = SqliteClient.layer({ filename: dbPath });
 const DatabaseLayer = makeDatabaseLive();
@@ -52,7 +56,7 @@ const ServerLayer = BaseLayer.pipe(
 const runtime = ManagedRuntime.make(ServerLayer);
 
 const createWindow = () => {
-  if (!app.isPackaged) console.log("[mao:lifecycle] creating window");
+  devLog("creating window");
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
@@ -77,7 +81,7 @@ const createWindow = () => {
 };
 
 app.on("ready", () => {
-  if (!app.isPackaged) console.log("[mao:lifecycle] app ready");
+  devLog("app ready");
   createWindow();
   runtime.runFork(startRpcServer.pipe(Effect.scoped));
 });
@@ -99,12 +103,11 @@ app.on("before-quit", async (e) => {
   if (isQuitting) return;
   isQuitting = true;
   e.preventDefault();
-  if (!app.isPackaged) console.log("[mao:lifecycle] disposing runtime");
+  devLog("disposing runtime");
   try {
     await runtime.dispose();
   } finally {
-    if (!app.isPackaged)
-      console.log("[mao:lifecycle] runtime disposed, exiting");
+    devLog("runtime disposed, exiting");
     app.exit(0);
   }
 });
