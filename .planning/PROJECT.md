@@ -20,9 +20,13 @@ Users can close the app and resume exactly where they left off — every tab, ev
 
 ### Active
 
-- [ ] Reconstruct full chat session state from stored events on app reopen
-- [ ] Resume CLI sessions using the `--resume` flag with stored session IDs
 - [ ] Support multiple concurrent tabs, each with independent persistence
+
+### Validated in Phase 04: Session Reconstruction
+
+- ✓ Reconstruct full chat session state from stored events on app reopen — SessionReconstructor service folds StoredEvents into ChatMessage arrays via typed event fold logic
+- ✓ Resume CLI sessions using the `--resume` flag with stored session IDs — SystemInitEvent session_id extracted to ReconstructedSession.sessionId, exposed via PersistenceRpcGroup.reconstructSession RPC
+- ✓ New RPC endpoint exposes session reconstruction to renderer — PersistenceRpcGroup with reconstructSession and listTabs RPCs, merged with ClaudeRpcGroup on shared IPC transport
 
 ### Validated in Phase 03: Write Pipeline
 
@@ -84,4 +88,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-26 after Phase 03 completion*
+*Last updated: 2026-03-26 after Phase 04 completion*
