@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Phase complete — ready for verification
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-25T12:20:48.041Z"
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-26T07:16:27.150Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 5
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Users can close the app and resume exactly where they left off
-**Current focus:** Phase 01 — sqlite-infrastructure
+**Current focus:** Phase 02 — storage-services
 
 ## Current Position
 
-Phase: 01 (sqlite-infrastructure) — EXECUTING
-Plan: 2 of 2
+Phase: 02 (storage-services) — EXECUTING
+Plan: 1 of 3
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Plan: 2 of 2
 *Updated after each plan completion*
 | Phase 01 P01 | 3min | 2 tasks | 6 files |
 | Phase 01 P02 | 7min | 2 tasks | 5 files |
+| Phase 02 P01 | 3min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -60,6 +61,8 @@ Recent decisions affecting current work:
 
 - [Phase 01]: Used manual ASAR unpack + ignore function instead of AutoUnpackNativesPlugin (regression #3934)
 - [Phase 01]: Used makeDatabaseLive(dbPath) factory function instead of static DatabaseLive constant for runtime path injection
+- [Phase 02]: StoredEvent union kept separate from ClaudeEvent to avoid polluting CLI event types with persistence-only events
+- [Phase 02]: UserMessageEvent stores prompt only -- timestamp from created_at column per D-01
 
 ### Pending Todos
 
@@ -72,6 +75,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-25T12:20:48.038Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-storage-services/02-CONTEXT.md
+Last session: 2026-03-26T07:16:27.147Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None

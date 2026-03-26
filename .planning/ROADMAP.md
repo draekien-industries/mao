@@ -46,7 +46,7 @@ Plans:
   4. Tab metadata (repository/cwd, git branch, session ID, tab order, display label) can be created, updated, and queried
 **Plans:** 3 plans
 Plans:
-- [ ] 02-01-PLAN.md — Update tabs schema (D-06), define StoredEvent/UserMessageEvent schemas, create EventStore and TabStore service contracts
+- [x] 02-01-PLAN.md — Update tabs schema (D-06), define StoredEvent/UserMessageEvent schemas, create EventStore and TabStore service contracts
 - [ ] 02-02-PLAN.md — Implement EventStore service with append, getBySession, purgeSession and full test coverage
 - [ ] 02-03-PLAN.md — Implement TabStore service with CRUD and cascade delete, wire both stores into main.ts
 
