@@ -20,14 +20,17 @@ Users can close the app and resume exactly where they left off — every tab, ev
 
 ### Active
 
-- [ ] Local SQLite database on user's machine for event storage
-- [ ] Event sourcing: each complete JSON event from the CLI stream stored as a row
 - [ ] Buffer partial/chunked stream messages, only persist the complete assembled message
 - [ ] Discard all partial output if user terminates a session mid-response
-- [ ] Tab metadata persistence: repository/cwd, git branch/worktree, session ID, tab order
 - [ ] Reconstruct full chat session state from stored events on app reopen
 - [ ] Resume CLI sessions using the `--resume` flag with stored session IDs
 - [ ] Support multiple concurrent tabs, each with independent persistence
+
+### Validated in Phase 02: Storage Services
+
+- ✓ Local SQLite database on user's machine for event storage — EventStore and TabStore service layers implemented
+- ✓ Event sourcing: each complete JSON event from the CLI stream stored as a row — EventStore.append with auto-assigned sequence numbers
+- ✓ Tab metadata persistence: repository/cwd, git branch, session ID, display label — TabStore CRUD with cascade delete
 
 ### Out of Scope
 
@@ -78,4 +81,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-25 after initialization*
+*Last updated: 2026-03-26 after Phase 02 completion*
