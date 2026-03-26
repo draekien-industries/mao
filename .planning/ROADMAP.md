@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: SQLite Infrastructure** - Native module packaging, database creation, connection lifecycle, and startup integrity checks
 - [ ] **Phase 2: Storage Services** - EventStore and TabStore services providing the append/query API for persisted data
 - [ ] **Phase 3: Write Pipeline** - Stream buffer and PersistentClaudeCli decorator that intercept CLI events and persist them transparently
-- [ ] **Phase 4: Session Reconstruction** - Read-path service that rebuilds full conversation state from stored events
+- [x] **Phase 4: Session Reconstruction** - Read-path service that rebuilds full conversation state from stored events (completed 2026-03-26)
 - [ ] **Phase 5: Renderer Integration** - Tab restore, session hydration in the UI, and graceful shutdown ensuring data safety
 
 ## Phase Details
@@ -72,11 +72,11 @@ Plans:
   1. A SessionReconstructor service can fold stored events back into a ChatMessage array that matches the original conversation state
   2. The reconstructed state includes the session_id needed to resume the CLI session via the --resume flag
   3. A new RPC endpoint exposes session reconstruction to the renderer process, returning typed data per tab
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [x] 04-01-PLAN.md — Create shared extractAssistantText utility, reconstruction schemas, EventStore getBySessionWithMeta extension
 - [x] 04-02-PLAN.md — SessionReconstructor service with TDD event fold logic
-- [ ] 04-03-PLAN.md — Create PersistenceRpcGroup, wire merged RPC groups into server/client/main.ts
+- [x] 04-03-PLAN.md — Create PersistenceRpcGroup, wire merged RPC groups into server/client/main.ts
 
 ### Phase 5: Renderer Integration
 **Goal**: Users experience seamless app restart — tabs restore, conversations appear, and quitting the app never loses data
@@ -99,5 +99,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. SQLite Infrastructure | 0/2 | Planning complete | - |
 | 2. Storage Services | 0/3 | Planning complete | - |
 | 3. Write Pipeline | 1/2 | In Progress|  |
-| 4. Session Reconstruction | 2/3 | In Progress | - |
+| 4. Session Reconstruction | 3/3 | Complete   | 2026-03-26 |
 | 5. Renderer Integration | 0/? | Not started | - |
