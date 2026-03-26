@@ -30,24 +30,14 @@ const EventStoreLayer = makeEventStoreLive();
 const TabStoreLayer = makeTabStoreLive();
 const PersistentLayer = makePersistentClaudeCliLive();
 
-const BaseLayer = Layer.provideMerge(
-  ClaudeRpcHandlers,
-  Layer.provideMerge(
-    PersistentLayer,
-    Layer.provideMerge(
-      ClaudeCliLive,
-      Layer.provideMerge(
-        TabStoreLayer,
-        Layer.provideMerge(
-          EventStoreLayer,
-          Layer.provideMerge(
-            DatabaseLayer,
-            Layer.provideMerge(SqliteLive, NodeContext.layer),
-          ),
-        ),
-      ),
-    ),
-  ),
+const BaseLayer = ClaudeRpcHandlers.pipe(
+  Layer.provideMerge(PersistentLayer),
+  Layer.provideMerge(ClaudeCliLive),
+  Layer.provideMerge(TabStoreLayer),
+  Layer.provideMerge(EventStoreLayer),
+  Layer.provideMerge(DatabaseLayer),
+  Layer.provideMerge(SqliteLive),
+  Layer.provideMerge(NodeContext.layer),
 );
 
 const ServerLayer = BaseLayer.pipe(
