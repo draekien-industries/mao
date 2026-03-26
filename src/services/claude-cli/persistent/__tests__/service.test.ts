@@ -2,9 +2,7 @@ import { Chunk, Effect, Layer, Stream } from "effect";
 import { describe, expect, it } from "vitest";
 import { DatabaseQueryError } from "../../../database/errors";
 import { EventStore } from "../../../database/event-store/service-definition";
-import {
-  ClaudeCliProcessError,
-} from "../../errors";
+import { ClaudeCliProcessError } from "../../errors";
 import {
   AssistantMessageEvent,
   MessageStartApiEvent,
@@ -15,7 +13,7 @@ import {
   UnknownEvent,
   Usage,
 } from "../../events";
-import { QueryParams, ResumeParams, ContinueParams } from "../../params";
+import { ContinueParams, QueryParams, ResumeParams } from "../../params";
 import { ClaudeCli } from "../../service-definition";
 import { makePersistentClaudeCliLive } from "../service";
 
@@ -82,9 +80,9 @@ const unknownEvent = new UnknownEvent({
 // --- Test helpers ---
 
 interface AppendedEvent {
-  sessionId: string;
-  eventType: string;
   eventData: string;
+  eventType: string;
+  sessionId: string;
 }
 
 interface CapturedCall {
@@ -375,19 +373,17 @@ describe("PersistentClaudeCli", () => {
 
   describe("termination", () => {
     it("no partial data on stream failure", async () => {
-      const { testLayer, appendedEvents } = makeTestLayer(
-        [systemInitEvent],
-        { failStream: true },
-      );
+      const { testLayer, appendedEvents } = makeTestLayer([systemInitEvent], {
+        failStream: true,
+      });
 
       const result = await Effect.runPromise(
         Effect.gen(function* () {
           const cli = yield* ClaudeCli;
           const params = new QueryParams({ prompt: "hello" });
-          return yield* cli.query(params).pipe(
-            Stream.runCollect,
-            Effect.either,
-          );
+          return yield* cli
+            .query(params)
+            .pipe(Stream.runCollect, Effect.either);
         }).pipe(Effect.provide(testLayer)),
       );
 
