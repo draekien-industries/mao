@@ -59,7 +59,10 @@ Plans:
   2. When a user terminates a session mid-response, the in-memory buffer is discarded and no partial data appears in the database
   3. The SystemInitEvent is persisted immediately upon stream start, capturing the session_id for future resume capability
   4. The PersistentClaudeCli decorator wraps ClaudeCli via Stream.tap and the renderer receives the same stream it did before — persistence is invisible to the UI
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 03-01-PLAN.md — Implement PersistentClaudeCli decorator with TDD (tests + service implementation)
+- [ ] 03-02-PLAN.md — Wire PersistentClaudeCli into main.ts layer composition
 
 ### Phase 4: Session Reconstruction
 **Goal**: Full conversation state can be rebuilt from stored events and exposed to the renderer via RPC
@@ -91,6 +94,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|----------------|--------|-----------|
 | 1. SQLite Infrastructure | 0/2 | Planning complete | - |
 | 2. Storage Services | 0/3 | Planning complete | - |
-| 3. Write Pipeline | 0/? | Not started | - |
+| 3. Write Pipeline | 0/2 | Planning complete | - |
 | 4. Session Reconstruction | 0/? | Not started | - |
 | 5. Renderer Integration | 0/? | Not started | - |
