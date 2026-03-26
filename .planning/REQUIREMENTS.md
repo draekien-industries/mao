@@ -18,8 +18,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **EVNT-01**: Each complete CLI event stored as an immutable row with session_id, sequence_number, event_type, event_data, and created_at
 - [x] **EVNT-02**: User messages stored as synthetic user_message events for full conversation reconstruction
-- [ ] **EVNT-03**: Events partitioned by session_id for multi-tab independence
-- [ ] **EVNT-04**: Sequence numbers maintain strict event ordering within each session
+- [x] **EVNT-03**: Events partitioned by session_id for multi-tab independence
+- [x] **EVNT-04**: Sequence numbers maintain strict event ordering within each session
 
 ### Write Pipeline
 
@@ -82,8 +82,8 @@ Deferred to future release. Tracked but not in current roadmap.
 | INFRA-04 | Phase 1 | Complete |
 | EVNT-01 | Phase 2 | Complete |
 | EVNT-02 | Phase 2 | Complete |
-| EVNT-03 | Phase 2 | Pending |
-| EVNT-04 | Phase 2 | Pending |
+| EVNT-03 | Phase 2 | Complete |
+| EVNT-04 | Phase 2 | Complete |
 | WPIPE-01 | Phase 3 | Pending |
 | WPIPE-02 | Phase 3 | Pending |
 | WPIPE-03 | Phase 3 | Pending |

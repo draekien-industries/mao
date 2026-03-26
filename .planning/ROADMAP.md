@@ -47,7 +47,7 @@ Plans:
 **Plans:** 3 plans
 Plans:
 - [x] 02-01-PLAN.md — Update tabs schema (D-06), define StoredEvent/UserMessageEvent schemas, create EventStore and TabStore service contracts
-- [ ] 02-02-PLAN.md — Implement EventStore service with append, getBySession, purgeSession and full test coverage
+- [x] 02-02-PLAN.md — Implement EventStore service with append, getBySession, purgeSession and full test coverage
 - [ ] 02-03-PLAN.md — Implement TabStore service with CRUD and cascade delete, wire both stores into main.ts
 
 ### Phase 3: Write Pipeline
