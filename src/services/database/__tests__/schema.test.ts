@@ -33,10 +33,16 @@ describe("TABS_TABLE_SQL", () => {
     expect(TABS_TABLE_SQL).toContain("cwd");
     expect(TABS_TABLE_SQL).toContain("git_branch");
     expect(TABS_TABLE_SQL).toContain("display_label");
-    expect(TABS_TABLE_SQL).toContain("tab_order");
-    expect(TABS_TABLE_SQL).toContain("is_active");
     expect(TABS_TABLE_SQL).toContain("created_at");
     expect(TABS_TABLE_SQL).toContain("updated_at");
+  });
+
+  it("does not contain tab_order column", () => {
+    expect(TABS_TABLE_SQL).not.toContain("tab_order");
+  });
+
+  it("does not contain is_active column", () => {
+    expect(TABS_TABLE_SQL).not.toContain("is_active");
   });
 });
 
