@@ -46,6 +46,10 @@ export const makeEventStoreLive = () =>
           Effect.annotateLogs(annotations.operation, "append"),
         );
 
+      const decodeStoredEvent = Schema.decodeUnknown(
+        Schema.parseJson(StoredEvent),
+      );
+
       const getBySession = (sessionId: string) =>
         Effect.gen(function* () {
           const rows = yield* sql<EventRow>`
@@ -55,11 +59,8 @@ export const makeEventStoreLive = () =>
             ORDER BY sequence_number ASC
           `;
 
-          const decoded: StoredEvent[] = [];
-          for (const row of rows) {
-            const event = yield* Schema.decodeUnknown(StoredEvent)(
-              JSON.parse(row.event_data),
-            ).pipe(
+          return yield* Effect.forEach(rows, (row) =>
+            decodeStoredEvent(row.event_data).pipe(
               Effect.mapError(
                 (cause) =>
                   new DatabaseQueryError({
@@ -67,10 +68,8 @@ export const makeEventStoreLive = () =>
                     message: `Failed to decode event ${row.id} for session ${sessionId}`,
                   }),
               ),
-            );
-            decoded.push(event);
-          }
-          return decoded as ReadonlyArray<StoredEvent>;
+            ),
+          );
         }).pipe(
           Effect.mapError((cause) =>
             cause instanceof DatabaseQueryError
