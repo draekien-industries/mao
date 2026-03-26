@@ -62,7 +62,7 @@ Plans:
 **Plans:** 1/2 plans executed
 Plans:
 - [x] 03-01-PLAN.md — Implement PersistentClaudeCli decorator with TDD (tests + service implementation)
-- [ ] 03-02-PLAN.md — Wire PersistentClaudeCli into main.ts layer composition
+- [x] 03-02-PLAN.md — Wire PersistentClaudeCli into main.ts layer composition
 
 ### Phase 4: Session Reconstruction
 **Goal**: Full conversation state can be rebuilt from stored events and exposed to the renderer via RPC
