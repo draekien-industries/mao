@@ -5,6 +5,7 @@ import { SqliteClient } from "@effect/sql-sqlite-node";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { app, BrowserWindow } from "electron";
 import started from "electron-squirrel-startup";
+import { makePersistentClaudeCliLive } from "./services/claude-cli/persistent/service";
 import { ClaudeCliLive } from "./services/claude-cli/service";
 import {
   ClaudeRpcHandlers,
@@ -27,18 +28,22 @@ const SqliteLive = SqliteClient.layer({ filename: dbPath });
 const DatabaseLayer = makeDatabaseLive();
 const EventStoreLayer = makeEventStoreLive();
 const TabStoreLayer = makeTabStoreLive();
+const PersistentLayer = makePersistentClaudeCliLive();
 
 const BaseLayer = Layer.provideMerge(
   ClaudeRpcHandlers,
   Layer.provideMerge(
-    ClaudeCliLive,
+    PersistentLayer,
     Layer.provideMerge(
-      TabStoreLayer,
+      ClaudeCliLive,
       Layer.provideMerge(
-        EventStoreLayer,
+        TabStoreLayer,
         Layer.provideMerge(
-          DatabaseLayer,
-          Layer.provideMerge(SqliteLive, NodeContext.layer),
+          EventStoreLayer,
+          Layer.provideMerge(
+            DatabaseLayer,
+            Layer.provideMerge(SqliteLive, NodeContext.layer),
+          ),
         ),
       ),
     ),
