@@ -120,6 +120,7 @@ const makeTestLayer = (
       return Effect.void;
     },
     getBySession: () => Effect.succeed([]),
+    getBySessionWithMeta: () => Effect.succeed([]),
     purgeSession: () => Effect.void,
   });
 

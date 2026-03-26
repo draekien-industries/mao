@@ -1,5 +1,6 @@
 import { Effect, Stream } from "effect";
 import { useEffect, useRef, useState } from "react";
+import { extractAssistantText } from "@/lib/extract-assistant-text";
 import { formatClaudeCliError } from "@/services/claude-cli/errors";
 import type { ClaudeEvent } from "@/services/claude-cli/events";
 import {
@@ -71,10 +72,7 @@ export function useClaudeChat() {
               setStreamingText((prev) => prev + chunk);
             }
           } else if (isAssistantMessage(event)) {
-            const text = event.message.content
-              .filter((block) => block.type === "text")
-              .map((block) => ("text" in block ? block.text : ""))
-              .join("");
+            const text = extractAssistantText(event);
             setMessages((prev) => [
               ...prev,
               { role: "assistant", content: text },

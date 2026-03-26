@@ -46,6 +46,10 @@ export const makeEventStoreLive = () =>
           Effect.annotateLogs(annotations.operation, "append"),
         );
 
+      const decodeStoredEvent = Schema.decodeUnknown(
+        Schema.parseJson(StoredEvent),
+      );
+
       const getBySession = (sessionId: string) =>
         Effect.gen(function* () {
           const rows = yield* sql<EventRow>`
@@ -55,11 +59,8 @@ export const makeEventStoreLive = () =>
             ORDER BY sequence_number ASC
           `;
 
-          const decoded: StoredEvent[] = [];
-          for (const row of rows) {
-            const event = yield* Schema.decodeUnknown(StoredEvent)(
-              JSON.parse(row.event_data),
-            ).pipe(
+          return yield* Effect.forEach(rows, (row) =>
+            decodeStoredEvent(row.event_data).pipe(
               Effect.mapError(
                 (cause) =>
                   new DatabaseQueryError({
@@ -67,10 +68,8 @@ export const makeEventStoreLive = () =>
                     message: `Failed to decode event ${row.id} for session ${sessionId}`,
                   }),
               ),
-            );
-            decoded.push(event);
-          }
-          return decoded as ReadonlyArray<StoredEvent>;
+            ),
+          );
         }).pipe(
           Effect.mapError((cause) =>
             cause instanceof DatabaseQueryError
@@ -81,6 +80,43 @@ export const makeEventStoreLive = () =>
                 }),
           ),
           Effect.annotateLogs(annotations.operation, "getBySession"),
+        );
+
+      const getBySessionWithMeta = (sessionId: string) =>
+        Effect.gen(function* () {
+          const rows = yield* sql<EventRow>`
+            SELECT id, session_id, sequence_number, event_type, event_data, created_at
+            FROM events
+            WHERE session_id = ${sessionId}
+            ORDER BY sequence_number ASC
+          `;
+
+          return yield* Effect.forEach(rows, (row) =>
+            decodeStoredEvent(row.event_data).pipe(
+              Effect.map((event) => ({
+                createdAt: row.created_at,
+                event,
+                sequenceNumber: row.sequence_number,
+              })),
+              Effect.mapError(
+                (cause) =>
+                  new DatabaseQueryError({
+                    cause: String(cause),
+                    message: `Failed to decode event ${row.id} for session ${sessionId}`,
+                  }),
+              ),
+            ),
+          );
+        }).pipe(
+          Effect.mapError((cause) =>
+            cause instanceof DatabaseQueryError
+              ? cause
+              : new DatabaseQueryError({
+                  cause: String(cause),
+                  message: `Failed to query events with meta for session ${sessionId}`,
+                }),
+          ),
+          Effect.annotateLogs(annotations.operation, "getBySessionWithMeta"),
         );
 
       const purgeSession = (sessionId: string) =>
@@ -96,6 +132,6 @@ export const makeEventStoreLive = () =>
           Effect.annotateLogs(annotations.operation, "purgeSession"),
         );
 
-      return { append, getBySession, purgeSession };
+      return { append, getBySession, getBySessionWithMeta, purgeSession };
     }).pipe(Effect.annotateLogs(annotations.service, "event-store")),
   );
