@@ -36,8 +36,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Session Reconstruction
 
-- [ ] **RECON-01**: Full conversation state reconstructed from stored events on app reopen
-- [ ] **RECON-02**: CLI sessions resumed via --resume flag using stored session_id
+- [x] **RECON-01**: Full conversation state reconstructed from stored events on app reopen
+- [x] **RECON-02**: CLI sessions resumed via --resume flag using stored session_id
 - [ ] **RECON-03**: New RPC endpoint exposes session reconstruction to the renderer process
 
 ### Safety
@@ -91,8 +91,8 @@ Deferred to future release. Tracked but not in current roadmap.
 | TAB-01 | Phase 2 | Complete |
 | TAB-02 | Phase 5 | Pending |
 | TAB-03 | Phase 5 | Pending |
-| RECON-01 | Phase 4 | Pending |
-| RECON-02 | Phase 4 | Pending |
+| RECON-01 | Phase 4 | Complete |
+| RECON-02 | Phase 4 | Complete |
 | RECON-03 | Phase 4 | Pending |
 | SAFE-01 | Phase 5 | Pending |
 | SAFE-02 | Phase 1 | Complete |
