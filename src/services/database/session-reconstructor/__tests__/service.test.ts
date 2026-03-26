@@ -9,11 +9,11 @@ import {
   UnknownEvent,
   Usage,
 } from "../../../claude-cli/events";
-import { EventStore } from "../../event-store/service-definition";
 import type { StoredEventWithMeta } from "../../event-store/schemas";
 import { UserMessageEvent } from "../../event-store/schemas";
-import { SessionReconstructor } from "../service-definition";
+import { EventStore } from "../../event-store/service-definition";
 import { makeSessionReconstructorLive } from "../service";
+import { SessionReconstructor } from "../service-definition";
 
 // --- Fixtures ---
 
@@ -33,9 +33,7 @@ const makeUserMessage = (prompt: string): UserMessageEvent =>
     prompt,
   });
 
-const makeAssistantMessage = (
-  text: string,
-): AssistantMessageEvent =>
+const makeAssistantMessage = (text: string): AssistantMessageEvent =>
   Schema.decodeUnknownSync(AssistantMessageEvent)({
     type: "assistant",
     message: {
@@ -92,9 +90,7 @@ const toRow = (
 
 // --- Test layer ---
 
-const makeTestLayer = (
-  rows: ReadonlyArray<StoredEventWithMeta>,
-) => {
+const makeTestLayer = (rows: ReadonlyArray<StoredEventWithMeta>) => {
   const mockEventStore = Layer.succeed(EventStore, {
     append: () => Effect.void,
     getBySession: () => Effect.succeed([]),
@@ -102,16 +98,13 @@ const makeTestLayer = (
     purgeSession: () => Effect.void,
   });
 
-  return makeSessionReconstructorLive().pipe(
-    Layer.provide(mockEventStore),
-  );
+  return makeSessionReconstructorLive().pipe(Layer.provide(mockEventStore));
 };
 
 const runTest = <A, E>(
   rows: ReadonlyArray<StoredEventWithMeta>,
   effect: Effect.Effect<A, E, SessionReconstructor>,
-) =>
-  Effect.runPromise(effect.pipe(Effect.provide(makeTestLayer(rows))));
+) => Effect.runPromise(effect.pipe(Effect.provide(makeTestLayer(rows))));
 
 // --- Tests ---
 
@@ -145,9 +138,7 @@ describe("SessionReconstructor", () => {
   });
 
   it("returns empty messages for SystemInitEvent-only session", async () => {
-    const rows: StoredEventWithMeta[] = [
-      toRow(makeSystemInit("init-only"), 1),
-    ];
+    const rows: StoredEventWithMeta[] = [toRow(makeSystemInit("init-only"), 1)];
 
     const result = await runTest(
       rows,

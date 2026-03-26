@@ -3,9 +3,7 @@ import { Context } from "effect";
 import type { DatabaseQueryError } from "../errors";
 import type { ReconstructedSession } from "./schemas";
 
-export class SessionReconstructor extends Context.Tag(
-  "SessionReconstructor",
-)<
+export class SessionReconstructor extends Context.Tag("SessionReconstructor")<
   SessionReconstructor,
   {
     readonly reconstruct: (
