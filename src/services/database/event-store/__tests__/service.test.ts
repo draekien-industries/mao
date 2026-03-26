@@ -304,6 +304,48 @@ describe("EventStore", () => {
     expect(result).toEqual([]);
   });
 
+  it("getBySessionWithMeta returns events with sequence_number and created_at", async () => {
+    reset();
+    const result = await runTest(
+      Effect.gen(function* () {
+        const store = yield* EventStore;
+        yield* store.append(
+          "session-meta",
+          "system",
+          JSON.stringify({
+            type: "system",
+            subtype: "init",
+            session_id: "session-meta",
+            uuid: "u1",
+          }),
+        );
+        yield* store.append(
+          "session-meta",
+          "user_message",
+          JSON.stringify({ type: "user_message", prompt: "hello" }),
+        );
+        return yield* store.getBySessionWithMeta("session-meta");
+      }),
+    );
+    expect(result).toHaveLength(2);
+    expect(result[0].sequenceNumber).toBe(1);
+    expect(result[0].event.type).toBe("system");
+    expect(typeof result[0].createdAt).toBe("string");
+    expect(result[1].sequenceNumber).toBe(2);
+    expect(result[1].event.type).toBe("user_message");
+  });
+
+  it("getBySessionWithMeta returns empty array for unknown session", async () => {
+    reset();
+    const result = await runTest(
+      Effect.gen(function* () {
+        const store = yield* EventStore;
+        return yield* store.getBySessionWithMeta("nonexistent");
+      }),
+    );
+    expect(result).toEqual([]);
+  });
+
   it("purgeSession does not affect other sessions", async () => {
     reset();
     const result = await runTest(
