@@ -10,7 +10,9 @@ import {
   ClaudeRpcHandlers,
   startRpcServer,
 } from "./services/claude-rpc/server";
+import { makeEventStoreLive } from "./services/database/event-store/service";
 import { makeDatabaseLive } from "./services/database/service";
+import { makeTabStoreLive } from "./services/database/tab-store/service";
 import { DevLogger, ProdLogger } from "./services/diagnostics";
 
 if (started) {
@@ -23,14 +25,22 @@ if (!app.isPackaged) console.log(`[mao:lifecycle] database path: ${dbPath}`);
 
 const SqliteLive = SqliteClient.layer({ filename: dbPath });
 const DatabaseLayer = makeDatabaseLive();
+const EventStoreLayer = makeEventStoreLive();
+const TabStoreLayer = makeTabStoreLive();
 
 const BaseLayer = Layer.provideMerge(
   ClaudeRpcHandlers,
   Layer.provideMerge(
     ClaudeCliLive,
     Layer.provideMerge(
-      DatabaseLayer,
-      Layer.provideMerge(SqliteLive, NodeContext.layer),
+      TabStoreLayer,
+      Layer.provideMerge(
+        EventStoreLayer,
+        Layer.provideMerge(
+          DatabaseLayer,
+          Layer.provideMerge(SqliteLive, NodeContext.layer),
+        ),
+      ),
     ),
   ),
 );
