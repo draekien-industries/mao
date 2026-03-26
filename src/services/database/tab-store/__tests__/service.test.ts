@@ -27,7 +27,6 @@ const makeInMemoryDatabase = () => {
   let events: InMemoryEvent[] = [];
   let nextTabId = 1;
   let nextEventId = 1;
-  let inTransaction = false;
 
   const sqlHandler = (
     strings: TemplateStringsArray,
@@ -73,31 +72,23 @@ const makeInMemoryDatabase = () => {
 
     // UPDATE tabs SET ... WHERE id = ?
     if (fullSql.includes("UPDATE tabs")) {
-      // The last param is the id from WHERE clause
+      // sql.update(updates, ["id"]) returns the updates object (from our mock)
+      // which gets interpolated as the first param; the id is the last param
       const id = params[params.length - 1] as number;
       const tab = tabs.find((t) => t.id === id);
       if (tab) {
-        // The plan uses sql.update(updates, ["id"]) which generates
-        // SET col1 = ?, col2 = ?, ... WHERE id = ?
-        // We parse the SET clause from the SQL to figure out which columns
-        const setMatch = fullSql.match(/SET (.+?) WHERE/);
-        if (setMatch) {
-          const setCols = setMatch[1]
-            .split(",")
-            .map((s) => s.trim().split("=")[0].trim().replace(/"/g, ""));
-          // params are: value1, value2, ..., id
-          for (let i = 0; i < setCols.length; i++) {
-            const col = setCols[i];
-            if (col === "cwd") tab.cwd = params[i] as string;
-            if (col === "session_id")
-              tab.session_id = params[i] as string | null;
-            if (col === "git_branch")
-              tab.git_branch = params[i] as string | null;
-            if (col === "display_label")
-              tab.display_label = params[i] as string | null;
-            if (col === "updated_at")
-              tab.updated_at = params[i] as string;
-          }
+        // The first param is the updates object from sql.update mock
+        const updates = params[0] as Record<string, unknown>;
+        if (updates && typeof updates === "object") {
+          if ("cwd" in updates) tab.cwd = updates.cwd as string;
+          if ("session_id" in updates)
+            tab.session_id = updates.session_id as string | null;
+          if ("git_branch" in updates)
+            tab.git_branch = updates.git_branch as string | null;
+          if ("display_label" in updates)
+            tab.display_label = updates.display_label as string | null;
+          if ("updated_at" in updates)
+            tab.updated_at = updates.updated_at as string;
         }
       }
       return Effect.succeed([]);
@@ -130,9 +121,7 @@ const makeInMemoryDatabase = () => {
     if (fullSql.includes("SELECT") && fullSql.includes("FROM events")) {
       if (fullSql.includes("WHERE session_id")) {
         const sessionId = params[0] as string;
-        return Effect.succeed(
-          events.filter((e) => e.session_id === sessionId),
-        );
+        return Effect.succeed(events.filter((e) => e.session_id === sessionId));
       }
       return Effect.succeed([...events]);
     }
