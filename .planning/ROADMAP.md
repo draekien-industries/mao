@@ -72,10 +72,10 @@ Plans:
   1. A SessionReconstructor service can fold stored events back into a ChatMessage array that matches the original conversation state
   2. The reconstructed state includes the session_id needed to resume the CLI session via the --resume flag
   3. A new RPC endpoint exposes session reconstruction to the renderer process, returning typed data per tab
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 Plans:
 - [x] 04-01-PLAN.md — Create shared extractAssistantText utility, reconstruction schemas, EventStore getBySessionWithMeta extension
-- [ ] 04-02-PLAN.md — Implement SessionReconstructor service with TDD (fold logic over stored events)
+- [x] 04-02-PLAN.md — SessionReconstructor service with TDD event fold logic
 - [ ] 04-03-PLAN.md — Create PersistenceRpcGroup, wire merged RPC groups into server/client/main.ts
 
 ### Phase 5: Renderer Integration
@@ -99,5 +99,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. SQLite Infrastructure | 0/2 | Planning complete | - |
 | 2. Storage Services | 0/3 | Planning complete | - |
 | 3. Write Pipeline | 1/2 | In Progress|  |
-| 4. Session Reconstruction | 1/3 | In Progress|  |
+| 4. Session Reconstruction | 2/3 | In Progress | - |
 | 5. Renderer Integration | 0/? | Not started | - |
