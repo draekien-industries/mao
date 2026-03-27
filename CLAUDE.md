@@ -21,3 +21,11 @@
 - Run `npm test` after you finish implementation to check if you have introduced any regressions.
 
 </rules>
+
+<logging>
+
+- Include sensible diagnostic logs that can be used to debug workflows during development
+- Ensure all errors are logged at some point in the Effect runtime
+- Use Effect logger where appropriate, otherwise the `devLog` helper
+
+</logging>
