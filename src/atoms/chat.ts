@@ -2,6 +2,7 @@ import { Atom } from "@effect-atom/atom-react";
 import { Effect, Stream } from "effect";
 import { extractAssistantText } from "@/lib/extract-assistant-text";
 import { formatClaudeCliError } from "@/services/claude-cli/errors";
+import type { ClaudeEvent } from "@/services/claude-cli/events";
 import {
   isAssistantMessage,
   isContentBlockDelta,
@@ -41,6 +42,10 @@ export const isStreamingAtom = Atom.family((_tabId: string) =>
 
 export const errorAtom = Atom.family((_tabId: string) =>
   Atom.make<string | null>(null).pipe(Atom.keepAlive),
+);
+
+export const eventsAtom = Atom.family((_tabId: string) =>
+  Atom.make<ReadonlyArray<ClaudeEvent>>([]).pipe(Atom.keepAlive),
 );
 
 // --- Derived status atom for sidebar indicators ---
@@ -88,6 +93,9 @@ export const sendMessageAtom = Atom.family((tabId: string) =>
 
       yield* Stream.runForEach(stream, (event) =>
         Effect.sync(() => {
+          const prevEvents = ctx(eventsAtom(tabId));
+          ctx.set(eventsAtom(tabId), [...prevEvents, event]);
+
           if (isSystemInit(event)) {
             ctx.set(sessionIdAtom(tabId), event.session_id);
           } else if (isStreamEvent(event)) {
