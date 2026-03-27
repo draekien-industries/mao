@@ -5,10 +5,14 @@ import { Effect, Layer, Runtime, Stream } from "effect";
 import type { ClaudeCliError } from "../claude-cli/errors";
 import { ClaudeCliSpawnError } from "../claude-cli/errors";
 import { ClaudeCli } from "../claude-cli/service-definition";
+import { DialogRpcGroup } from "../dialog-rpc/group";
+import { GitRpcGroup } from "../git-rpc/group";
 import { PersistenceRpcGroup } from "../persistence-rpc/group";
 import { ClaudeRpcGroup } from "./group";
 
-const MergedRpcGroup = ClaudeRpcGroup.merge(PersistenceRpcGroup);
+const MergedRpcGroup = ClaudeRpcGroup.merge(PersistenceRpcGroup)
+  .merge(GitRpcGroup)
+  .merge(DialogRpcGroup);
 
 const mapRpcError = (err: ClaudeCliError | RpcClientError): ClaudeCliError =>
   err._tag === "RpcClientError"

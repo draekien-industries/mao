@@ -12,6 +12,7 @@ interface TabRow {
   readonly display_label: string | null;
   readonly git_branch: string | null;
   readonly id: number;
+  readonly project_id: number | null;
   readonly session_id: string | null;
   readonly updated_at: string;
 }
@@ -27,14 +28,15 @@ export const makeTabStoreLive = () =>
       const create = (input: TabCreate) =>
         Effect.gen(function* () {
           const rows = yield* sql<TabRow>`
-            INSERT INTO tabs (session_id, cwd, git_branch, display_label)
+            INSERT INTO tabs (session_id, cwd, git_branch, display_label, project_id)
             VALUES (
               ${input.session_id ?? null},
               ${input.cwd},
               ${input.git_branch ?? null},
-              ${input.display_label ?? null}
+              ${input.display_label ?? null},
+              ${input.project_id ?? null}
             )
-            RETURNING id, session_id, cwd, git_branch, display_label, created_at, updated_at
+            RETURNING id, session_id, cwd, git_branch, display_label, project_id, created_at, updated_at
           `;
           return yield* decodeTab(rows[0]);
         }).pipe(
@@ -51,7 +53,7 @@ export const makeTabStoreLive = () =>
       const getById = (id: number) =>
         Effect.gen(function* () {
           const rows = yield* sql<TabRow>`
-            SELECT id, session_id, cwd, git_branch, display_label, created_at, updated_at
+            SELECT id, session_id, cwd, git_branch, display_label, project_id, created_at, updated_at
             FROM tabs WHERE id = ${id}
           `;
           if (rows.length === 0) return Option.none<Tab>();
@@ -71,7 +73,7 @@ export const makeTabStoreLive = () =>
       const getAll = () =>
         Effect.gen(function* () {
           const rows = yield* sql<TabRow>`
-            SELECT id, session_id, cwd, git_branch, display_label, created_at, updated_at
+            SELECT id, session_id, cwd, git_branch, display_label, project_id, created_at, updated_at
             FROM tabs
           `;
           const tabs: Tab[] = [];
@@ -101,6 +103,8 @@ export const makeTabStoreLive = () =>
             updates.git_branch = input.git_branch;
           if (input.display_label !== undefined)
             updates.display_label = input.display_label;
+          if (input.project_id !== undefined)
+            updates.project_id = input.project_id;
           updates.updated_at = new Date()
             .toISOString()
             .replace("T", " ")

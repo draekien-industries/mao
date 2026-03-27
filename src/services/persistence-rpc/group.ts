@@ -1,11 +1,34 @@
 import { Rpc, RpcGroup } from "@effect/rpc";
 import { Schema } from "effect";
 import { DatabaseQueryError } from "../database/errors";
+import { Project } from "../database/project-store/schemas";
 import { ReconstructedSession } from "../database/session-reconstructor/schemas";
 import { Tab } from "../database/tab-store/schemas";
-import { ListTabsParams, ReconstructSessionParams } from "./params";
+import {
+  CreateProjectParams,
+  CreateTabParams,
+  ListProjectsParams,
+  ListTabsParams,
+  ReconstructSessionParams,
+  RemoveProjectParams,
+} from "./params";
 
 export class PersistenceRpcGroup extends RpcGroup.make(
+  Rpc.make("createProject", {
+    error: DatabaseQueryError,
+    payload: CreateProjectParams,
+    success: Project,
+  }),
+  Rpc.make("createTab", {
+    error: DatabaseQueryError,
+    payload: CreateTabParams,
+    success: Tab,
+  }),
+  Rpc.make("listProjects", {
+    error: DatabaseQueryError,
+    payload: ListProjectsParams,
+    success: Schema.Array(Project),
+  }),
   Rpc.make("listTabs", {
     error: DatabaseQueryError,
     payload: ListTabsParams,
@@ -15,5 +38,10 @@ export class PersistenceRpcGroup extends RpcGroup.make(
     error: DatabaseQueryError,
     payload: ReconstructSessionParams,
     success: ReconstructedSession,
+  }),
+  Rpc.make("removeProject", {
+    error: DatabaseQueryError,
+    payload: RemoveProjectParams,
+    success: Schema.Void,
   }),
 ) {}

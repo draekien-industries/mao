@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: SQLite Infrastructure** - Native module packaging, database creation, connection lifecycle, and startup integrity checks
 - [ ] **Phase 2: Storage Services** - EventStore and TabStore services providing the append/query API for persisted data
 - [ ] **Phase 3: Write Pipeline** - Stream buffer and PersistentClaudeCli decorator that intercept CLI events and persist them transparently
-- [x] **Phase 4: Session Reconstruction** - Read-path service that rebuilds full conversation state from stored events (completed 2026-03-26)
+- [x] **Phase 4: Session Reconstruction** - Read-path service that rebuilds full conversation state from stored events (completed 2026-03-26)
 - [ ] **Phase 5: Renderer Integration** - Tab restore, session hydration in the UI, and graceful shutdown ensuring data safety
 
 ## Phase Details
@@ -81,28 +81,26 @@ Plans:
 ### Phase 04.1: Atom state foundation + sidebar shell (INSERTED)
 
 **Goal:** Install effect-atom, migrate single-session chat from useClaudeChat hooks to atom-based state, build the two-tiered sidebar component with basic project/session structure. Proves the new architecture works end-to-end with one tab.
-**Requirements**: ATOM-01, ATOM-02, ATOM-03, SIDE-01, SIDE-02, SIDE-03
+**Requirements**: TBD
 **Depends on:** Phase 4
-**Plans:** 3/3 plans complete
+**Plans:** 0 plans
 
 Plans:
-- [x] 04.1-01-PLAN.md — Install effect-atom, create atom runtime + per-tab chat state atoms, swap RegistryProvider
-- [x] 04.1-02-PLAN.md — Install collapsible, build AppSidebar with mock data, create SessionStatusIndicator
-- [x] 04.1-03-PLAN.md — Wire sidebar into root layout, migrate chat panel to atoms, connect live status indicators
+- [ ] TBD (run /gsd:plan-phase 04.1 to break down)
 
 ### Phase 04.2: Project and session management with git integration (INSERTED)
 
 **Goal:** Project registration via native directory picker, session creation with branch/worktree selection, git worktree creation via `git worktree add`, project removal with cascade. New RPC endpoints for git operations on the main process.
-**Requirements**: PROJ-01, PROJ-02, GIT-01, GIT-02, DIAL-01, RPC-01, RPC-02, RPC-03, RPC-04, ATOM-04, ATOM-05, UI-01, UI-02, UI-03, UI-04, UI-05
+**Requirements**: RPC-01, RPC-02, RPC-03, RPC-04
 **Depends on:** Phase 04.1
-**Plans:** 1/5 plans executed
+**Plans:** 5 plans (3 complete, 2 remaining)
 
 Plans:
-- [x] 04.2-01-PLAN.md — Project table DDL, ProjectStore schemas/service-definition/service with cascade delete tests
-- [ ] 04.2-02-PLAN.md — GitService (CommandExecutor-based) and DialogService (Electron dialog) with tests
-- [ ] 04.2-03-PLAN.md — GitRpcGroup, DialogRpcGroup, extended PersistenceRpcGroup, four-way merge, main.ts wiring
-- [ ] 04.2-04-PLAN.md — Install shadcn components, replace mock sidebar atoms with real DB-backed project/session state
-- [ ] 04.2-05-PLAN.md — UI dialogs (create session, remove project, branch autocomplete), wire into sidebar
+- [x] 04.2-01-PLAN.md -- ProjectStore service with cascade delete
+- [x] 04.2-02-PLAN.md -- GitService and DialogService implementations
+- [x] 04.2-03-PLAN.md -- RPC layer: GitRpcGroup, DialogRpcGroup, extended PersistenceRpcGroup, four-way merge
+- [ ] 04.2-04-PLAN.md -- Sidebar React component
+- [ ] 04.2-05-PLAN.md -- Project management UI
 
 ### Phase 04.3: Multi-tab orchestration with background streaming (INSERTED)
 

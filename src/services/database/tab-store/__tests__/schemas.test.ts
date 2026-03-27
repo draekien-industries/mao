@@ -10,6 +10,7 @@ describe("Tab", () => {
       cwd: "/path",
       git_branch: "main",
       display_label: "my tab",
+      project_id: 5,
       created_at: "2026-01-01",
       updated_at: "2026-01-01",
     });
@@ -18,6 +19,7 @@ describe("Tab", () => {
     expect(result.cwd).toBe("/path");
     expect(result.git_branch).toBe("main");
     expect(result.display_label).toBe("my tab");
+    expect(result.project_id).toBe(5);
   });
 
   it("decodes with null optional fields", () => {
@@ -27,12 +29,14 @@ describe("Tab", () => {
       cwd: "/path",
       git_branch: null,
       display_label: null,
+      project_id: null,
       created_at: "2026-01-01",
       updated_at: "2026-01-01",
     });
     expect(result.session_id).toBeNull();
     expect(result.git_branch).toBeNull();
     expect(result.display_label).toBeNull();
+    expect(result.project_id).toBeNull();
   });
 });
 

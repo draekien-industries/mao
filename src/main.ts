@@ -12,10 +12,15 @@ import {
   startRpcServer,
 } from "./services/claude-rpc/server";
 import { makeEventStoreLive } from "./services/database/event-store/service";
+import { makeProjectStoreLive } from "./services/database/project-store/service";
 import { makeDatabaseLive } from "./services/database/service";
 import { makeSessionReconstructorLive } from "./services/database/session-reconstructor/service";
 import { makeTabStoreLive } from "./services/database/tab-store/service";
 import { DevLogger, ProdLogger } from "./services/diagnostics";
+import { makeDialogServiceLive } from "./services/dialog/service";
+import { DialogRpcHandlers } from "./services/dialog-rpc/handlers";
+import { makeGitServiceLive } from "./services/git/service";
+import { GitRpcHandlers } from "./services/git-rpc/handlers";
 import { PersistenceRpcHandlers } from "./services/persistence-rpc/handlers";
 
 if (started) {
@@ -36,12 +41,20 @@ const EventStoreLayer = makeEventStoreLive();
 const TabStoreLayer = makeTabStoreLive();
 const PersistentLayer = makePersistentClaudeCliLive();
 const SessionReconstructorLayer = makeSessionReconstructorLive();
+const ProjectStoreLayer = makeProjectStoreLive();
+const GitServiceLayer = makeGitServiceLive();
+const DialogServiceLayer = makeDialogServiceLive();
 
 const BaseLayer = ClaudeRpcHandlers.pipe(
   Layer.provideMerge(PersistenceRpcHandlers),
+  Layer.provideMerge(GitRpcHandlers),
+  Layer.provideMerge(DialogRpcHandlers),
   Layer.provideMerge(SessionReconstructorLayer),
   Layer.provideMerge(PersistentLayer),
   Layer.provideMerge(ClaudeCliLive),
+  Layer.provideMerge(GitServiceLayer),
+  Layer.provideMerge(DialogServiceLayer),
+  Layer.provideMerge(ProjectStoreLayer),
   Layer.provideMerge(TabStoreLayer),
   Layer.provideMerge(EventStoreLayer),
   Layer.provideMerge(DatabaseLayer),
