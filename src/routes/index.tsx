@@ -31,7 +31,7 @@ function IndexComponent() {
   const isStreaming = useAtomValue(isStreamingAtom(tabKey));
   const error = useAtomValue(errorAtom(tabKey));
   const events = useAtomValue(eventsAtom(tabKey));
-  const sendMessage = useAtomSet(sendMessageAtom(tabKey));
+  const sendMessage = useAtomSet(sendMessageAtom);
   const { debugOpen } = useDebugPanel();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -42,7 +42,7 @@ function IndexComponent() {
     onSubmit: ({ value }) => {
       const trimmed = value.prompt.trim();
       if (!trimmed) return;
-      sendMessage(trimmed);
+      sendMessage({ tabId: tabKey, prompt: trimmed });
       form.reset();
     },
   });

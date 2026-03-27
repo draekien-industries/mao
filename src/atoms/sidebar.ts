@@ -45,9 +45,20 @@ const loadProjectsEffect = (ctx: Atom.FnContext) =>
 
 // --- Action atoms ---
 
-// Eager-load projects and tabs from DB via RPC on app start
+// Eager-load projects and tabs from DB via RPC on app start.
+// If no tab is active, default to the first available tab.
 export const loadProjectsAtom = appRuntime.fn((_: void, ctx: Atom.FnContext) =>
-  loadProjectsEffect(ctx),
+  Effect.gen(function* () {
+    yield* loadProjectsEffect(ctx);
+    const activeId = ctx(activeTabIdAtom);
+    if (activeId === null) {
+      const projects = ctx(projectsAtom);
+      const firstTab = projects[0]?.sessions[0];
+      if (firstTab) {
+        ctx.set(activeTabIdAtom, firstTab.id);
+      }
+    }
+  }),
 );
 
 // Switch to a different tab with skeleton loading transition

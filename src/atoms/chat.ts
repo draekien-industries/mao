@@ -64,11 +64,18 @@ export const tabStatusAtom = Atom.family((tabId: string) =>
   }),
 );
 
-// --- Send message action atom (D-04 corrected: Atom.fn with Stream.runForEach) ---
+// --- Send message action atom ---
+// Single global action — not a family — so the fiber is never tied to a
+// per-tab atom subscription that gets cleaned up on tab switch.
 
-export const sendMessageAtom = Atom.family((tabId: string) =>
-  appRuntime.fn((prompt: string, ctx: Atom.FnContext) =>
+export const sendMessageAtom = appRuntime.fn(
+  (
+    params: { readonly tabId: string; readonly prompt: string },
+    ctx: Atom.FnContext,
+  ) =>
     Effect.gen(function* () {
+      const { tabId, prompt } = params;
+
       // Add user message
       const prevMessages = ctx(messagesAtom(tabId));
       ctx.set(messagesAtom(tabId), [
@@ -123,10 +130,9 @@ export const sendMessageAtom = Atom.family((tabId: string) =>
     }).pipe(
       Effect.catchAll((err) =>
         Effect.sync(() => {
-          ctx.set(errorAtom(tabId), formatClaudeCliError(err));
-          ctx.set(isStreamingAtom(tabId), false);
+          ctx.set(errorAtom(params.tabId), formatClaudeCliError(err));
+          ctx.set(isStreamingAtom(params.tabId), false);
         }),
       ),
     ),
-  ),
 );
