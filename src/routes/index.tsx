@@ -1,9 +1,9 @@
 import { useAtomSet, useAtomValue } from "@effect-atom/atom-react";
-import { ArrowUp02Icon, Bug01Icon } from "@hugeicons/core-free-icons";
+import { ArrowUp02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import {
   errorAtom,
   eventsAtom,
@@ -16,6 +16,7 @@ import { DebugEventPanel } from "@/components/debug-event-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useDebugPanel } from "./__root";
 
 const TAB_ID = "tab-1";
 
@@ -30,8 +31,8 @@ function IndexComponent() {
   const error = useAtomValue(errorAtom(TAB_ID));
   const events = useAtomValue(eventsAtom(TAB_ID));
   const sendMessage = useAtomSet(sendMessageAtom(TAB_ID));
+  const { debugOpen } = useDebugPanel();
 
-  const [debugOpen, setDebugOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollRafRef = useRef(0);
 
@@ -57,16 +58,6 @@ function IndexComponent() {
   return (
     <div className="flex h-full">
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center justify-end border-b border-border px-3 py-2">
-          <Button
-            onClick={() => setDebugOpen((v) => !v)}
-            size="icon-xs"
-            variant={debugOpen ? "secondary" : "ghost"}
-          >
-            <HugeiconsIcon icon={Bug01Icon} strokeWidth={2} />
-          </Button>
-        </div>
-
         <div className="flex-1 space-y-3 overflow-y-auto p-4">
           {messages.length === 0 && !streamingText && (
             <p className="py-16 text-center text-sm text-muted-foreground">
