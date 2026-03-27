@@ -119,10 +119,8 @@ const makeInMemoryDatabase = () => {
     safe: undefined,
     reserve: Effect.succeed({}),
     unsafe: (rawSql: string) => Effect.succeed([]),
-    update: (
-      updates: Record<string, unknown>,
-      omit: ReadonlyArray<string>,
-    ) => updates,
+    update: (updates: Record<string, unknown>, omit: ReadonlyArray<string>) =>
+      updates,
     withTransaction: <R, E, A>(self: Effect.Effect<A, E, R>) => self,
     withoutTransforms: () => mockSql,
   });
@@ -135,7 +133,11 @@ const makeInMemoryDatabase = () => {
       events.push({ id: nextEventId++, session_id: sessionId });
     },
     insertTab: (projectId: number, sessionId: string | null) => {
-      tabs.push({ id: nextTabId++, project_id: projectId, session_id: sessionId });
+      tabs.push({
+        id: nextTabId++,
+        project_id: projectId,
+        session_id: sessionId,
+      });
     },
     layer: Layer.succeed(
       SqlClient.SqlClient,

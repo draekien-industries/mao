@@ -15,11 +15,11 @@ export class Project extends Schema.Class<Project>("Project")({
   worktree_base_path: Schema.NullOr(Schema.String),
 }) {}
 
-export class ProjectCreate extends Schema.Class<ProjectCreate>(
-  "ProjectCreate",
-)({
-  directory: Schema.String,
-  is_git_repo: Schema.Boolean,
-  name: Schema.String,
-  worktree_base_path: Schema.optional(Schema.String),
-}) {}
+export class ProjectCreate extends Schema.Class<ProjectCreate>("ProjectCreate")(
+  {
+    directory: Schema.String,
+    is_git_repo: Schema.Boolean,
+    name: Schema.String,
+    worktree_base_path: Schema.optional(Schema.String),
+  },
+) {}
