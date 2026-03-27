@@ -1,10 +1,11 @@
 import { Logger } from "effect";
 
 export const annotations = {
-  service: "service",
-  operation: "operation",
   clientId: "clientId",
+  operation: "operation",
+  service: "service",
   sessionId: "sessionId",
+  tabId: "tabId",
 } as const;
 
 export const DevLogger = Logger.pretty;

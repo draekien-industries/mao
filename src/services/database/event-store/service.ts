@@ -19,6 +19,7 @@ export const makeEventStoreLive = () =>
     EventStore,
     Effect.gen(function* () {
       const { sql } = yield* Database;
+      yield* Effect.logInfo("EventStore layer constructed");
 
       const append = (
         sessionId: string,
@@ -36,6 +37,11 @@ export const makeEventStoreLive = () =>
           )
         `.pipe(
           Effect.asVoid,
+          Effect.tapError((cause) =>
+            Effect.logError("Event append failed").pipe(
+              Effect.annotateLogs("error", String(cause)),
+            ),
+          ),
           Effect.mapError(
             (cause) =>
               new DatabaseQueryError({
@@ -122,6 +128,11 @@ export const makeEventStoreLive = () =>
       const purgeSession = (sessionId: string) =>
         sql`DELETE FROM events WHERE session_id = ${sessionId}`.pipe(
           Effect.asVoid,
+          Effect.tapError((cause) =>
+            Effect.logError("Event purge failed").pipe(
+              Effect.annotateLogs("error", String(cause)),
+            ),
+          ),
           Effect.mapError(
             (cause) =>
               new DatabaseQueryError({
