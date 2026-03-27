@@ -97,8 +97,14 @@ Recent decisions affecting current work:
 - Phase 1: The exact combination of @effect/sql-sqlite-node + Electron Forge Vite plugin has limited documented precedent. AutoUnpackNativesPlugin has a known regression (issue #3934). Validate during Phase 1 planning.
 - Phase 3: Effect.addFinalizer + Stream.tap + fiber interruption interaction in active IPC sessions has no exact documented example. May need prototype validation during planning.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260328-dct | Add E2E logging into the app where it is missing | 2026-03-27 | 5d91f22 | [260328-dct-i-want-to-add-e2e-logging-into-the-app-w](./quick/260328-dct-i-want-to-add-e2e-logging-into-the-app-w/) |
+
 ## Session Continuity
 
-Last session: 2026-03-27T14:00:55.000Z
+Last activity: 2026-03-27 - Completed quick task 260328-dct: Add E2E logging into the app where it is missing
 Stopped at: Completed 04.2-04-PLAN.md
 Resume file: None

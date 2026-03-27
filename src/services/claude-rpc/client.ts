@@ -4,6 +4,11 @@ import type { FromServerEncoded } from "@effect/rpc/RpcMessage";
 import { Context, Effect, Layer, Runtime, Stream } from "effect";
 import type { ClaudeCliError } from "../claude-cli/errors";
 import { ClaudeCliSpawnError } from "../claude-cli/errors";
+import type {
+  ContinueParams,
+  QueryParams,
+  ResumeParams,
+} from "../claude-cli/params";
 import { ClaudeCli } from "../claude-cli/service-definition";
 import { annotations } from "../diagnostics";
 import { DialogRpcGroup } from "../dialog-rpc/group";
@@ -78,11 +83,12 @@ export const ClaudeCliFromRpc = Layer.effect(
     );
     const client = yield* RendererRpcClient;
     return {
-      query: (params) =>
+      query: (params: QueryParams) =>
         client.query(params).pipe(Stream.mapError(mapRpcError)),
-      resume: (params) =>
+      resume: (params: ResumeParams) =>
         client.resume(params).pipe(Stream.mapError(mapRpcError)),
-      cont: (params) => client.cont(params).pipe(Stream.mapError(mapRpcError)),
+      cont: (params: ContinueParams) =>
+        client.cont(params).pipe(Stream.mapError(mapRpcError)),
     };
   }),
 );
