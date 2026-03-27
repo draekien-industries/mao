@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: SQLite Infrastructure** - Native module packaging, database creation, connection lifecycle, and startup integrity checks
 - [ ] **Phase 2: Storage Services** - EventStore and TabStore services providing the append/query API for persisted data
 - [ ] **Phase 3: Write Pipeline** - Stream buffer and PersistentClaudeCli decorator that intercept CLI events and persist them transparently
-- [x] **Phase 4: Session Reconstruction** - Read-path service that rebuilds full conversation state from stored events (completed 2026-03-26)
+- [x] **Phase 4: Session Reconstruction** - Read-path service that rebuilds full conversation state from stored events (completed 2026-03-26)
 - [ ] **Phase 5: Renderer Integration** - Tab restore, session hydration in the UI, and graceful shutdown ensuring data safety
 
 ## Phase Details
@@ -81,12 +81,14 @@ Plans:
 ### Phase 04.1: Atom state foundation + sidebar shell (INSERTED)
 
 **Goal:** Install effect-atom, migrate single-session chat from useClaudeChat hooks to atom-based state, build the two-tiered sidebar component with basic project/session structure. Proves the new architecture works end-to-end with one tab.
-**Requirements**: TBD
+**Requirements**: ATOM-01, ATOM-02, ATOM-03, SIDE-01, SIDE-02, SIDE-03
 **Depends on:** Phase 4
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 04.1 to break down)
+- [ ] 04.1-01-PLAN.md — Install effect-atom, create atom runtime + per-tab chat state atoms, swap RegistryProvider
+- [ ] 04.1-02-PLAN.md — Install collapsible, build AppSidebar with mock data, create SessionStatusIndicator
+- [ ] 04.1-03-PLAN.md — Wire sidebar into root layout, migrate chat panel to atoms, connect live status indicators
 
 ### Phase 04.2: Project and session management with git integration (INSERTED)
 
