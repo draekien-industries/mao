@@ -1,6 +1,12 @@
 import { Atom } from "@effect-atom/atom-react";
-import { ClaudeCliFromRpc } from "@/services/claude-rpc/client";
+import { Layer } from "effect";
+import {
+  ClaudeCliFromRpc,
+  RendererRpcClientLayer,
+} from "@/services/claude-rpc/client";
 
-// Single runtime atom providing ClaudeCli service to all atoms.
-// Replaces ManagedRuntime.make(ClaudeCliFromRpc) + RuntimeProvider.
-export const appRuntime = Atom.runtime(ClaudeCliFromRpc);
+// Merge ClaudeCli and RendererRpcClient layers so all atoms
+// can access both CLI streaming and typed RPC calls.
+const RendererLayer = Layer.merge(ClaudeCliFromRpc, RendererRpcClientLayer);
+
+export const appRuntime = Atom.runtime(RendererLayer);
