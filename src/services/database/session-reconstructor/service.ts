@@ -12,9 +12,11 @@ export const makeSessionReconstructorLive = () =>
     SessionReconstructor,
     Effect.gen(function* () {
       const eventStore = yield* EventStore;
+      yield* Effect.logInfo("SessionReconstructor layer constructed");
 
       const reconstruct = (sessionId: string) =>
         Effect.gen(function* () {
+          yield* Effect.logInfo("Reconstructing session");
           const rows = yield* eventStore.getBySessionWithMeta(sessionId);
 
           let extractedSessionId = sessionId;
@@ -44,6 +46,10 @@ export const makeSessionReconstructorLive = () =>
             }
             // ResultEvent, SystemRetryEvent, UnknownEvent -> skipped (D-09)
           }
+
+          yield* Effect.logInfo("Session reconstructed").pipe(
+            Effect.annotateLogs("messageCount", String(messages.length)),
+          );
 
           return new ReconstructedSession({
             messages,

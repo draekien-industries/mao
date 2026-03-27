@@ -24,9 +24,11 @@ export const makeTabStoreLive = () =>
     TabStore,
     Effect.gen(function* () {
       const { sql } = yield* Database;
+      yield* Effect.logInfo("TabStore layer constructed");
 
       const create = (input: TabCreate) =>
         Effect.gen(function* () {
+          yield* Effect.logInfo("Creating tab");
           const rows = yield* sql<TabRow>`
             INSERT INTO tabs (session_id, cwd, git_branch, display_label, project_id)
             VALUES (
@@ -40,6 +42,11 @@ export const makeTabStoreLive = () =>
           `;
           return yield* decodeTab(rows[0]);
         }).pipe(
+          Effect.tapError((cause) =>
+            Effect.logError("Tab creation failed").pipe(
+              Effect.annotateLogs("error", String(cause)),
+            ),
+          ),
           Effect.mapError(
             (cause) =>
               new DatabaseQueryError({
@@ -94,6 +101,9 @@ export const makeTabStoreLive = () =>
 
       const update = (id: number, input: TabUpdate) =>
         Effect.gen(function* () {
+          yield* Effect.logInfo("Updating tab").pipe(
+            Effect.annotateLogs("tabId", String(id)),
+          );
           // Build SET clause dynamically from provided fields
           const updates: Record<string, unknown> = {};
           if (input.cwd !== undefined) updates.cwd = input.cwd;
@@ -113,6 +123,11 @@ export const makeTabStoreLive = () =>
           yield* sql`UPDATE tabs SET ${sql.update(updates, ["id"])} WHERE id = ${id}`;
         }).pipe(
           Effect.asVoid,
+          Effect.tapError((cause) =>
+            Effect.logError("Tab update failed").pipe(
+              Effect.annotateLogs("error", String(cause)),
+            ),
+          ),
           Effect.mapError(
             (cause) =>
               new DatabaseQueryError({
@@ -126,6 +141,9 @@ export const makeTabStoreLive = () =>
       // D-04: Hard delete. D-05/D-09: Cascade to events within transaction.
       const deleteTab = (id: number) =>
         Effect.gen(function* () {
+          yield* Effect.logInfo("Deleting tab").pipe(
+            Effect.annotateLogs("tabId", String(id)),
+          );
           // Look up session_id for cascade
           const rows = yield* sql<{ session_id: string | null }>`
             SELECT session_id FROM tabs WHERE id = ${id}
@@ -143,6 +161,11 @@ export const makeTabStoreLive = () =>
         }).pipe(
           sql.withTransaction,
           Effect.asVoid,
+          Effect.tapError((cause) =>
+            Effect.logError("Tab deletion failed").pipe(
+              Effect.annotateLogs("error", String(cause)),
+            ),
+          ),
           Effect.mapError(
             (cause) =>
               new DatabaseQueryError({

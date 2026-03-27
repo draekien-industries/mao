@@ -37,6 +37,7 @@ export const makeGitServiceLive = () =>
     GitService,
     Effect.gen(function* () {
       const executor = yield* CommandExecutor.CommandExecutor;
+      yield* Effect.logInfo("GitService layer constructed");
 
       const runGitCommand = (
         args: ReadonlyArray<string>,
@@ -48,6 +49,11 @@ export const makeGitServiceLive = () =>
           command = Command.workingDirectory(command, cwd);
 
           const process = yield* executor.start(command).pipe(
+            Effect.tapError((cause) =>
+              Effect.logError("Git command failed").pipe(
+                Effect.annotateLogs("error", String(cause)),
+              ),
+            ),
             Effect.mapError(
               (cause) =>
                 new GitOperationError({
@@ -151,6 +157,7 @@ export const makeGitServiceLive = () =>
         basePath: string,
       ) =>
         Effect.gen(function* () {
+          yield* Effect.logInfo("Creating worktree");
           const worktreePath = path.join(basePath, branchName);
           const branches = yield* listBranches(cwd);
           const branchExists = branches.includes(branchName);
@@ -162,11 +169,14 @@ export const makeGitServiceLive = () =>
         });
 
       const removeWorktree = (cwd: string, worktreePath: string) =>
-        runGitCommand(
-          ["worktree", "remove", worktreePath],
-          cwd,
-          "removeWorktree",
-        ).pipe(Effect.asVoid);
+        Effect.gen(function* () {
+          yield* Effect.logInfo("Removing worktree");
+          yield* runGitCommand(
+            ["worktree", "remove", worktreePath],
+            cwd,
+            "removeWorktree",
+          );
+        }).pipe(Effect.asVoid);
 
       return {
         createWorktree,

@@ -3,6 +3,7 @@ import { Effect } from "effect";
 import { RendererRpcClient } from "@/services/claude-rpc/client";
 import type { Project } from "@/services/database/project-store/schemas";
 import type { Tab } from "@/services/database/tab-store/schemas";
+import { annotations } from "@/services/diagnostics";
 import { appRuntime } from "./runtime";
 
 // --- Types ---
@@ -49,6 +50,7 @@ const loadProjectsEffect = (ctx: Atom.FnContext) =>
 // If no tab is active, default to the first available tab.
 export const loadProjectsAtom = appRuntime.fn((_: void, ctx: Atom.FnContext) =>
   Effect.gen(function* () {
+    yield* Effect.logInfo("Loading projects");
     yield* loadProjectsEffect(ctx);
     const activeId = ctx(activeTabIdAtom);
     if (activeId === null) {
@@ -58,7 +60,10 @@ export const loadProjectsAtom = appRuntime.fn((_: void, ctx: Atom.FnContext) =>
         ctx.set(activeTabIdAtom, firstTab.id);
       }
     }
-  }),
+  }).pipe(
+    Effect.annotateLogs(annotations.service, "sidebar"),
+    Effect.annotateLogs(annotations.operation, "loadProjects"),
+  ),
 );
 
 // Switch to a different tab with skeleton loading transition
@@ -91,6 +96,7 @@ export const loadBranchesAtom = appRuntime.fn(
 export const registerProjectAtom = appRuntime.fn(
   (_: void, ctx: Atom.FnContext) =>
     Effect.gen(function* () {
+      yield* Effect.logInfo("Registering project");
       const client = yield* RendererRpcClient;
 
       // D-16: Open native directory picker
@@ -123,6 +129,9 @@ export const registerProjectAtom = appRuntime.fn(
         directory,
         is_git_repo: isGit,
       });
+      yield* Effect.logInfo("Project registered").pipe(
+        Effect.annotateLogs("projectName", name),
+      );
 
       // D-17: Auto-create first session on current branch
       let gitBranch: string | null = null;
@@ -144,7 +153,15 @@ export const registerProjectAtom = appRuntime.fn(
 
       // D-09: Auto-expand project and activate first session
       ctx.set(activeTabIdAtom, tab.id);
-    }),
+    }).pipe(
+      Effect.tapError((cause) =>
+        Effect.logError("Project registration failed").pipe(
+          Effect.annotateLogs("error", String(cause)),
+        ),
+      ),
+      Effect.annotateLogs(annotations.service, "sidebar"),
+      Effect.annotateLogs(annotations.operation, "registerProject"),
+    ),
 );
 
 // Create a session within a project (D-10, D-11, D-12)
@@ -161,6 +178,7 @@ export const createSessionAtom = appRuntime.fn(
     ctx: Atom.FnContext,
   ) =>
     Effect.gen(function* () {
+      yield* Effect.logInfo("Creating session");
       const client = yield* RendererRpcClient;
 
       let sessionCwd = params.cwd;
@@ -195,19 +213,31 @@ export const createSessionAtom = appRuntime.fn(
         git_branch: params.branchName,
         display_label: params.branchName,
       });
+      yield* Effect.logInfo("Session created");
 
       // Refresh atoms
       yield* loadProjectsEffect(ctx);
 
       // Activate new session
       ctx.set(activeTabIdAtom, tab.id);
-    }),
+    }).pipe(
+      Effect.tapError((cause) =>
+        Effect.logError("Session creation failed").pipe(
+          Effect.annotateLogs("error", String(cause)),
+        ),
+      ),
+      Effect.annotateLogs(annotations.service, "sidebar"),
+      Effect.annotateLogs(annotations.operation, "createSession"),
+    ),
 );
 
 // Remove a project (D-20)
 export const removeProjectAtom = appRuntime.fn(
   (projectId: number, ctx: Atom.FnContext) =>
     Effect.gen(function* () {
+      yield* Effect.logInfo("Removing project").pipe(
+        Effect.annotateLogs("projectId", String(projectId)),
+      );
       const client = yield* RendererRpcClient;
       yield* client.removeProject({ id: projectId });
 
@@ -223,7 +253,15 @@ export const removeProjectAtom = appRuntime.fn(
       if (!stillExists) {
         ctx.set(activeTabIdAtom, null);
       }
-    }),
+    }).pipe(
+      Effect.tapError((cause) =>
+        Effect.logError("Project removal failed").pipe(
+          Effect.annotateLogs("error", String(cause)),
+        ),
+      ),
+      Effect.annotateLogs(annotations.service, "sidebar"),
+      Effect.annotateLogs(annotations.operation, "removeProject"),
+    ),
 );
 
 // Check if a worktree already exists for a branch (D-12)

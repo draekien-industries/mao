@@ -23,9 +23,11 @@ export const makeProjectStoreLive = () =>
     ProjectStore,
     Effect.gen(function* () {
       const { sql } = yield* Database;
+      yield* Effect.logInfo("ProjectStore layer constructed");
 
       const create = (input: ProjectCreate) =>
         Effect.gen(function* () {
+          yield* Effect.logInfo("Creating project");
           const rows = yield* sql<ProjectRow>`
             INSERT INTO projects (name, directory, is_git_repo, worktree_base_path)
             VALUES (
@@ -38,6 +40,11 @@ export const makeProjectStoreLive = () =>
           `;
           return yield* decodeProject(rows[0]);
         }).pipe(
+          Effect.tapError((cause) =>
+            Effect.logError("Project creation failed").pipe(
+              Effect.annotateLogs("error", String(cause)),
+            ),
+          ),
           Effect.mapError(
             (cause) =>
               new DatabaseQueryError({
@@ -92,6 +99,9 @@ export const makeProjectStoreLive = () =>
 
       const remove = (id: number) =>
         Effect.gen(function* () {
+          yield* Effect.logInfo("Removing project").pipe(
+            Effect.annotateLogs("projectId", String(id)),
+          );
           // Find all tabs belonging to this project
           const tabRows = yield* sql<{
             id: number;
@@ -115,6 +125,11 @@ export const makeProjectStoreLive = () =>
         }).pipe(
           sql.withTransaction,
           Effect.asVoid,
+          Effect.tapError((cause) =>
+            Effect.logError("Project removal failed").pipe(
+              Effect.annotateLogs("error", String(cause)),
+            ),
+          ),
           Effect.mapError(
             (cause) =>
               new DatabaseQueryError({
