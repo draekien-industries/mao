@@ -5,6 +5,8 @@ import { DatabaseCorruptionError, DatabaseQueryError } from "./errors";
 import {
   EVENTS_SESSION_INDEX_SQL,
   EVENTS_TABLE_SQL,
+  PROJECTS_TABLE_SQL,
+  TABS_ADD_PROJECT_ID_SQL,
   TABS_TABLE_SQL,
 } from "./schema";
 import { Database } from "./service-definition";
@@ -36,6 +38,17 @@ const bootstrapSchema = (sql: SqlClient.SqlClient) =>
 
     yield* sql.unsafe(TABS_TABLE_SQL);
     yield* Effect.logDebug("Tabs table created");
+
+    yield* sql.unsafe(PROJECTS_TABLE_SQL);
+    yield* Effect.logDebug("Projects table created");
+
+    // ALTER TABLE will fail if column already exists (expected on subsequent launches)
+    yield* Effect.try(() => sql.unsafe(TABS_ADD_PROJECT_ID_SQL)).pipe(
+      Effect.flatten,
+      Effect.catchAll(() =>
+        Effect.logDebug("project_id column already exists on tabs table"),
+      ),
+    );
 
     yield* Effect.logInfo("Database schema bootstrapped");
   }).pipe(
