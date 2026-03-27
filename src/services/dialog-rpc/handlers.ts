@@ -8,7 +8,13 @@ export const DialogRpcHandlers = DialogRpcGroup.toLayer(
 
     return {
       openDirectory: () =>
-        dialogService.openDirectory().pipe(Effect.map(Option.getOrNull)),
+        Effect.gen(function* () {
+          yield* Effect.logInfo("[dialog-rpc] openDirectory called");
+          const result = yield* dialogService.openDirectory();
+          const value = Option.getOrNull(result);
+          yield* Effect.logInfo(`[dialog-rpc] openDirectory result=${value}`);
+          return value;
+        }),
     };
   }),
 );

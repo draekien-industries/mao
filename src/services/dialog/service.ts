@@ -7,23 +7,27 @@ import { DialogService } from "./service-definition";
 export const makeDialogServiceLive = () =>
   Layer.succeed(DialogService, {
     openDirectory: () =>
-      Effect.tryPromise({
-        try: () =>
-          dialog.showOpenDialog({
-            properties: ["openDirectory"],
-            title: "Select Project Directory",
-          }),
-        catch: (cause) =>
-          new DialogError({
-            message: String(cause),
-            operation: "openDirectory",
-          }),
+      Effect.gen(function* () {
+        yield* Effect.logInfo("[dialog] showOpenDialog starting");
+        const result = yield* Effect.tryPromise({
+          try: () =>
+            dialog.showOpenDialog({
+              properties: ["openDirectory"],
+              title: "Select Project Directory",
+            }),
+          catch: (cause) =>
+            new DialogError({
+              message: String(cause),
+              operation: "openDirectory",
+            }),
+        });
+        yield* Effect.logInfo(
+          `[dialog] showOpenDialog done: canceled=${result.canceled} paths=${JSON.stringify(result.filePaths)}`,
+        );
+        return result.canceled
+          ? Option.none<string>()
+          : Option.some(result.filePaths[0]);
       }).pipe(
-        Effect.map((result) =>
-          result.canceled
-            ? Option.none<string>()
-            : Option.some(result.filePaths[0]),
-        ),
         Effect.annotateLogs(annotations.operation, "openDirectory"),
         Effect.annotateLogs(annotations.service, "dialog"),
       ),

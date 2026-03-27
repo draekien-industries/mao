@@ -49,22 +49,8 @@ const ElectronClientProtocol = Layer.scoped(
   ),
 );
 
-export const ClaudeCliFromRpc = Layer.scoped(
-  ClaudeCli,
-  Effect.gen(function* () {
-    const client = yield* RpcClient.make(MergedRpcGroup);
-    return {
-      query: (params) =>
-        client.query(params).pipe(Stream.mapError(mapRpcError)),
-      resume: (params) =>
-        client.resume(params).pipe(Stream.mapError(mapRpcError)),
-      cont: (params) => client.cont(params).pipe(Stream.mapError(mapRpcError)),
-    };
-  }),
-).pipe(Layer.provide(ElectronClientProtocol));
-
-// Tag for accessing the full typed RPC client in the renderer.
-// Lets sidebar atoms call persistence, git, and dialog RPCs directly.
+// Single shared RPC client — one protocol instance, one onMessage listener.
+// Both ClaudeCli and RendererRpcClient derive from this same client.
 const _makeClient = RpcClient.make(MergedRpcGroup);
 type MergedRpcClient = Effect.Effect.Success<typeof _makeClient>;
 
@@ -73,7 +59,22 @@ export class RendererRpcClient extends Context.Tag("RendererRpcClient")<
   MergedRpcClient
 >() {}
 
-export const RendererRpcClientLayer = Layer.scoped(
-  RendererRpcClient,
-  _makeClient,
-).pipe(Layer.provide(ElectronClientProtocol));
+const SharedClientLayer = Layer.scoped(RendererRpcClient, _makeClient).pipe(
+  Layer.provide(ElectronClientProtocol),
+);
+
+export const ClaudeCliFromRpc = Layer.effect(
+  ClaudeCli,
+  Effect.gen(function* () {
+    const client = yield* RendererRpcClient;
+    return {
+      query: (params) =>
+        client.query(params).pipe(Stream.mapError(mapRpcError)),
+      resume: (params) =>
+        client.resume(params).pipe(Stream.mapError(mapRpcError)),
+      cont: (params) => client.cont(params).pipe(Stream.mapError(mapRpcError)),
+    };
+  }),
+);
+
+export const RendererRpcClientLayer = SharedClientLayer;

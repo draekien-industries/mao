@@ -5,8 +5,10 @@ import {
   RendererRpcClientLayer,
 } from "@/services/claude-rpc/client";
 
-// Merge ClaudeCli and RendererRpcClient layers so all atoms
-// can access both CLI streaming and typed RPC calls.
-const RendererLayer = Layer.merge(ClaudeCliFromRpc, RendererRpcClientLayer);
+// ClaudeCliFromRpc depends on RendererRpcClient (shared single RPC client).
+// provideMerge wires the dependency and exposes both tags to atoms.
+const RendererLayer = ClaudeCliFromRpc.pipe(
+  Layer.provideMerge(RendererRpcClientLayer),
+);
 
 export const appRuntime = Atom.runtime(RendererLayer);

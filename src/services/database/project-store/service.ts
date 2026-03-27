@@ -26,6 +26,9 @@ export const makeProjectStoreLive = () =>
 
       const create = (input: ProjectCreate) =>
         Effect.gen(function* () {
+          yield* Effect.logInfo(
+            `[project-store] create called: name=${input.name} dir=${input.directory} git=${input.is_git_repo}`,
+          );
           const rows = yield* sql<ProjectRow>`
             INSERT INTO projects (name, directory, is_git_repo, worktree_base_path)
             VALUES (
@@ -36,8 +39,18 @@ export const makeProjectStoreLive = () =>
             )
             RETURNING id, name, directory, is_git_repo, worktree_base_path, created_at, updated_at
           `;
-          return yield* decodeProject(rows[0]);
+          yield* Effect.logInfo(
+            `[project-store] insert returned ${rows.length} rows`,
+          );
+          const project = yield* decodeProject(rows[0]);
+          yield* Effect.logInfo(
+            `[project-store] decoded project id=${project.id}`,
+          );
+          return project;
         }).pipe(
+          Effect.tapErrorCause((cause) =>
+            Effect.logError(`[project-store] create FAILED: ${cause}`),
+          ),
           Effect.mapError(
             (cause) =>
               new DatabaseQueryError({
