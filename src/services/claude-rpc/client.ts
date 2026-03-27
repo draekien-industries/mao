@@ -5,6 +5,7 @@ import { Context, Effect, Layer, Runtime, Stream } from "effect";
 import type { ClaudeCliError } from "../claude-cli/errors";
 import { ClaudeCliSpawnError } from "../claude-cli/errors";
 import { ClaudeCli } from "../claude-cli/service-definition";
+import { annotations } from "../diagnostics";
 import { DialogRpcGroup } from "../dialog-rpc/group";
 import { GitRpcGroup } from "../git-rpc/group";
 import { PersistenceRpcGroup } from "../persistence-rpc/group";
@@ -30,6 +31,7 @@ const ElectronClientProtocol = Layer.scoped(
   RpcClient.Protocol.make((write) =>
     Effect.gen(function* () {
       const rt = yield* Effect.runtime<never>();
+      yield* Effect.logInfo("RPC client protocol initialized");
 
       // IPC transport boundary — Electron gives unknown, but RpcServer.make
       // encodes all messages as FromServerEncoded before sending via IPC.
@@ -37,7 +39,12 @@ const ElectronClientProtocol = Layer.scoped(
         Runtime.runFork(rt)(write(message as FromServerEncoded));
       });
 
-      yield* Effect.addFinalizer(() => Effect.sync(() => unsubscribe()));
+      yield* Effect.addFinalizer(() =>
+        Effect.gen(function* () {
+          yield* Effect.logInfo("RPC client protocol finalizing");
+          unsubscribe();
+        }),
+      );
 
       return {
         send: (request: unknown) =>
@@ -45,7 +52,7 @@ const ElectronClientProtocol = Layer.scoped(
         supportsAck: false,
         supportsTransferables: false,
       };
-    }),
+    }).pipe(Effect.annotateLogs(annotations.service, "rpc-client")),
   ),
 );
 
@@ -66,6 +73,9 @@ const SharedClientLayer = Layer.scoped(RendererRpcClient, _makeClient).pipe(
 export const ClaudeCliFromRpc = Layer.effect(
   ClaudeCli,
   Effect.gen(function* () {
+    yield* Effect.logInfo("ClaudeCliFromRpc layer constructed").pipe(
+      Effect.annotateLogs(annotations.service, "claude-cli-from-rpc"),
+    );
     const client = yield* RendererRpcClient;
     return {
       query: (params) =>

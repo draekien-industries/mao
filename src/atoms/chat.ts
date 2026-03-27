@@ -13,6 +13,7 @@ import {
 } from "@/services/claude-cli/events";
 import { QueryParams, ResumeParams } from "@/services/claude-cli/params";
 import { ClaudeCli } from "@/services/claude-cli/service-definition";
+import { annotations } from "@/services/diagnostics";
 import { appRuntime } from "./runtime";
 
 // --- Types ---
@@ -75,6 +76,9 @@ export const sendMessageAtom = appRuntime.fn(
   ) =>
     Effect.gen(function* () {
       const { tabId, prompt } = params;
+      yield* Effect.logInfo("Sending message").pipe(
+        Effect.annotateLogs(annotations.tabId, tabId),
+      );
 
       // Add user message
       const prevMessages = ctx(messagesAtom(tabId));
@@ -129,10 +133,15 @@ export const sendMessageAtom = appRuntime.fn(
       );
     }).pipe(
       Effect.catchAll((err) =>
-        Effect.sync(() => {
+        Effect.gen(function* () {
+          yield* Effect.logError("Send message failed").pipe(
+            Effect.annotateLogs("error", formatClaudeCliError(err)),
+            Effect.annotateLogs(annotations.tabId, params.tabId),
+          );
           ctx.set(errorAtom(params.tabId), formatClaudeCliError(err));
           ctx.set(isStreamingAtom(params.tabId), false);
         }),
       ),
+      Effect.annotateLogs(annotations.service, "chat"),
     ),
 );
