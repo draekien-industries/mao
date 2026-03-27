@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 04.1-02-PLAN.md
-last_updated: "2026-03-27T10:58:11.132Z"
+status: Executing
+stopped_at: Completed 04.1-01 and 04.1-02
+last_updated: "2026-03-27T10:58:53Z"
 progress:
   total_phases: 8
   completed_phases: 4
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Users can close the app and resume exactly where they left off
-**Current focus:** Phase 04.1 — create-the-tab-interface-in-the-frontend-of-this-app
+**Current focus:** Phase 04.1 — atom state foundation + sidebar shell
 
 ## Current Position
 
 Phase: 04.1 (create-the-tab-interface-in-the-frontend-of-this-app) — EXECUTING
-Plan: 2 of 3
+Plan: 2 of 3 (Wave 1 complete)
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Plan: 2 of 3
 | Phase 04 P01 | 5min | 2 tasks | 10 files |
 | Phase 04 P02 | 3min | 1 tasks | 3 files |
 | Phase 04 P03 | 5min | 2 tasks | 7 files |
+| Phase 04.1 P01 | 9min | 3 tasks | 8 files |
 | Phase 04.1 P02 | 7min | 2 tasks | 4 files |
 
 ## Accumulated Context
@@ -63,8 +64,10 @@ Plan: 2 of 3
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
--
-
+- [Phase 04.1]: FnContext callable syntax ctx(atom) not ctx.get(atom) for reading atoms in Effect programs
+- [Phase 04.1]: RegistryProvider takes options object {children} not JSX children
+- [Phase 04.1]: Kept AppRuntime export for backward compat; use-claude-chat.ts uses it directly
+- [Phase 04.1]: Used --legacy-peer-deps for React 19 + effect-atom peer dep mismatch
 - [Phase 01]: Used manual ASAR unpack + ignore function instead of AutoUnpackNativesPlugin (regression #3934)
 - [Phase 01]: Used makeDatabaseLive(dbPath) factory function instead of static DatabaseLive constant for runtime path injection
 - [Phase 02]: Used mock SqlClient pattern for TabStore tests (Electron ABI mismatch)
@@ -96,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T10:58:11.129Z
-Stopped at: Completed 04.1-02-PLAN.md
-Resume file: None
+Last session: 2026-03-27T10:58:53Z
+Stopped at: Completed Wave 1 (04.1-01 and 04.1-02)
+Resume file: .planning/phases/04.1-create-the-tab-interface-in-the-frontend-of-this-app/04.1-03-PLAN.md

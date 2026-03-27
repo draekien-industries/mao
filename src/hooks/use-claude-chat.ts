@@ -13,7 +13,7 @@ import {
 } from "@/services/claude-cli/events";
 import { QueryParams, ResumeParams } from "@/services/claude-cli/params";
 import { ClaudeCli } from "@/services/claude-cli/service-definition";
-import { useRuntime } from "@/services/claude-rpc/runtime";
+import { AppRuntime } from "@/services/claude-rpc/runtime";
 
 export interface ChatMessage {
   readonly content: string;
@@ -21,8 +21,6 @@ export interface ChatMessage {
 }
 
 export function useClaudeChat() {
-  const runtime = useRuntime();
-
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [streamingText, setStreamingText] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -97,7 +95,7 @@ export function useClaudeChat() {
     // Fire and forget — the stream completes in the background even if
     // the component unmounts (e.g. tab switch). setState calls on an
     // unmounted component are safely ignored in React 18+.
-    runtime.runFork(program);
+    AppRuntime.runFork(program);
   };
 
   // Reset events when the hook mounts (fresh chat session)
