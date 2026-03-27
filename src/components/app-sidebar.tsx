@@ -20,7 +20,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 function SessionEntry({
@@ -47,9 +46,8 @@ function AppSidebar() {
 
   return (
     <Sidebar collapsible="offcanvas" side="left">
-      <SidebarHeader className="flex flex-row items-center justify-between">
+      <SidebarHeader>
         <span className="text-base font-semibold">Mao</span>
-        <SidebarTrigger />
       </SidebarHeader>
       <SidebarContent>
         {mockProjects.map((project) => (
