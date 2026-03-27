@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+out/
+dist/
+.vite/
+
+# Electron Forge
+.webpack/
+
+# TanStack Router
+.tanstack/
+
+# Claude
+.claude/settings.local.json
+
+# Environment
+.env
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
