@@ -1,11 +1,6 @@
 import { ManagedRuntime } from "effect";
-import { createContext, useContext } from "react";
 import { ClaudeCliFromRpc } from "./client";
 
+// Kept for backward compatibility — main process may still reference this.
+// Renderer-side code should use Atom.runtime via src/atoms/runtime.ts instead.
 export const AppRuntime = ManagedRuntime.make(ClaudeCliFromRpc);
-
-type AppRuntimeType = typeof AppRuntime;
-const RuntimeContext = createContext<AppRuntimeType>(AppRuntime);
-
-export const RuntimeProvider = RuntimeContext.Provider;
-export const useRuntime = () => useContext(RuntimeContext);
