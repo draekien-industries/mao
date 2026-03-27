@@ -83,7 +83,8 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+- Persist tool_result as typed schema (area: api)
+- Isolate RPC clients per tab for independent claude-cli subprocesses (area: api)
 
 ### Roadmap Evolution
 
