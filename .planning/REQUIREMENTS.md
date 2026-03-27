@@ -47,8 +47,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Project & Session Management (Phase 04.2)
 
-- [ ] **PROJ-01**: Project table in SQLite with id, name, directory, is_git_repo, worktree_base_path; tabs reference project_id via foreign key (D-07)
-- [ ] **PROJ-02**: ProjectStore service provides create, getAll, getById, remove with cascade delete of tabs and events (D-06, D-20)
+- [x] **PROJ-01**: Project table in SQLite with id, name, directory, is_git_repo, worktree_base_path; tabs reference project_id via foreign key (D-07)
+- [x] **PROJ-02**: ProjectStore service provides create, getAll, getById, remove with cascade delete of tabs and events (D-06, D-20)
 - [ ] **GIT-01**: GitService wraps git CLI via CommandExecutor for listBranches, getCurrentBranch, getRepoName, isGitRepo, listWorktrees, createWorktree, removeWorktree (D-21)
 - [ ] **GIT-02**: Git worktree creation uses `git worktree add` with branch-exists detection; existing worktrees offered for reuse (D-11, D-12)
 - [ ] **DIAL-01**: DialogService wraps Electron's native dialog.showOpenDialog for directory selection (D-22)
@@ -115,8 +115,8 @@ Deferred to future release. Tracked but not in current roadmap.
 | RECON-03 | Phase 4 | Complete |
 | SAFE-01 | Phase 5 | Pending |
 | SAFE-02 | Phase 1 | Complete |
-| PROJ-01 | Phase 04.2 | Pending |
-| PROJ-02 | Phase 04.2 | Pending |
+| PROJ-01 | Phase 04.2 | Complete |
+| PROJ-02 | Phase 04.2 | Complete |
 | GIT-01 | Phase 04.2 | Pending |
 | GIT-02 | Phase 04.2 | Pending |
 | DIAL-01 | Phase 04.2 | Pending |

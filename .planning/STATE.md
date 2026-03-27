@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Phase 4.2 context gathered
-last_updated: "2026-03-27T12:24:01.562Z"
+status: Executing
+stopped_at: Completed 04.2-01-PLAN.md
+last_updated: "2026-03-27T13:30:31Z"
 progress:
   total_phases: 8
   completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 18
+  completed_plans: 14
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Users can close the app and resume exactly where they left off
-**Current focus:** Phase 04.1 — atom state foundation + sidebar shell
+**Current focus:** Phase 04.2 — project and session management with git integration
 
 ## Current Position
 
 Phase: 04.2
-Plan: Not started
+Plan: 1 of 5
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Plan: Not started
 | Phase 04.1 P01 | 9min | 3 tasks | 8 files |
 | Phase 04.1 P02 | 7min | 2 tasks | 4 files |
 | Phase 04.1 P03 | 16min | 2 tasks | 4 files |
+| Phase 04.2 P01 | 5min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Recent decisions affecting current work:
 - [Phase 04.1]: Used base-ui data-closed attribute selector for collapsible state (not radix data-state pattern)
 - [Phase 04.1]: Removed DebugEventPanel from chat view; raw events not tracked in atom state
 - [Phase 04.1]: Extracted SessionEntry component for per-session atom subscriptions in sidebar
+- [Phase 04.2]: SqliteBoolean via Schema.transform maps SQLite INTEGER 0/1 to TypeScript boolean
+- [Phase 04.2]: ALTER TABLE for tabs.project_id wrapped in Effect.try/catchAll for idempotent migrations
 
 ### Pending Todos
 
@@ -102,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T12:24:01.558Z
-Stopped at: Phase 4.2 context gathered
-Resume file: .planning/phases/04.2-project-and-session-management-with-git-integration/04.2-CONTEXT.md
+Last session: 2026-03-27T13:30:31Z
+Stopped at: Completed 04.2-01-PLAN.md
+Resume file: .planning/phases/04.2-project-and-session-management-with-git-integration/04.2-01-SUMMARY.md
