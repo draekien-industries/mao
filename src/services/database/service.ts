@@ -50,6 +50,18 @@ const bootstrapSchema = (sql: SqlClient.SqlClient) =>
       ),
     );
 
+    // Drop legacy columns from phase 04.1 that are no longer used
+    for (const column of ["tab_order", "is_active"]) {
+      yield* Effect.try(() =>
+        sql.unsafe(`ALTER TABLE tabs DROP COLUMN ${column}`),
+      ).pipe(
+        Effect.flatten,
+        Effect.catchAll(() =>
+          Effect.logDebug(`tabs.${column} column already removed or absent`),
+        ),
+      );
+    }
+
     yield* Effect.logInfo("Database schema bootstrapped");
   }).pipe(
     Effect.mapError(

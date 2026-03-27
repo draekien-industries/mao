@@ -38,9 +38,6 @@ export const makeTabStoreLive = () =>
             )
             RETURNING id, session_id, cwd, git_branch, display_label, project_id, created_at, updated_at
           `;
-          yield* Effect.logInfo(
-            `[tab-store] create raw row: ${JSON.stringify(rows[0])}`,
-          );
           return yield* decodeTab(rows[0]);
         }).pipe(
           Effect.mapError(

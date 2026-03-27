@@ -80,26 +80,16 @@ export const loadBranchesAtom = appRuntime.fn(
 export const registerProjectAtom = appRuntime.fn(
   (_: void, ctx: Atom.FnContext) =>
     Effect.gen(function* () {
-      yield* Effect.logInfo("[register] start");
       const client = yield* RendererRpcClient;
 
       // D-16: Open native directory picker
-      yield* Effect.logInfo("[register] calling openDirectory");
       const directory = yield* client.openDirectory({});
-      yield* Effect.logInfo(
-        `[register] directory=${directory} (type=${typeof directory})`,
-      );
-      if (directory === null) {
-        yield* Effect.logInfo("[register] directory was null, aborting");
-        return;
-      }
+      if (directory === null) return;
 
       // D-16: Auto-derive name from git repo or folder name
-      yield* Effect.logInfo("[register] calling isGitRepo");
       const isGit = yield* client
         .isGitRepo({ cwd: directory })
         .pipe(Effect.catchAll(() => Effect.succeed(false)));
-      yield* Effect.logInfo(`[register] isGit=${isGit}`);
 
       // Extract basename without node:path (not available in renderer)
       const basename = (p: string) => {
@@ -109,54 +99,41 @@ export const registerProjectAtom = appRuntime.fn(
 
       let name: string;
       if (isGit) {
-        yield* Effect.logInfo("[register] calling getRepoName");
         name = yield* client
           .getRepoName({ cwd: directory })
           .pipe(Effect.catchAll(() => Effect.succeed(basename(directory))));
       } else {
         name = basename(directory);
       }
-      yield* Effect.logInfo(`[register] name=${name}`);
 
       // D-06: DB-first create
-      yield* Effect.logInfo("[register] calling createProject");
       const project = yield* client.createProject({
         name,
         directory,
         is_git_repo: isGit,
       });
-      yield* Effect.logInfo(`[register] project.id=${project.id}`);
 
       // D-17: Auto-create first session on current branch
       let gitBranch: string | null = null;
       if (isGit) {
-        yield* Effect.logInfo("[register] calling getCurrentBranch");
         gitBranch = yield* client
           .getCurrentBranch({ cwd: directory })
           .pipe(Effect.catchAll(() => Effect.succeed(null as string | null)));
       }
-      yield* Effect.logInfo(`[register] gitBranch=${gitBranch}`);
 
-      yield* Effect.logInfo("[register] calling createTab");
       const tab = yield* client.createTab({
         cwd: directory,
         project_id: project.id,
         git_branch: gitBranch ?? undefined,
         display_label: gitBranch ?? "default",
       });
-      yield* Effect.logInfo(`[register] tab.id=${tab.id}`);
 
       // Refresh atoms from DB
       yield* loadProjectsEffect(ctx);
 
       // D-09: Auto-expand project and activate first session
       ctx.set(activeTabIdAtom, tab.id);
-      yield* Effect.logInfo("[register] complete");
-    }).pipe(
-      Effect.tapErrorCause((cause) =>
-        Effect.logError(`[register] FAILED: ${cause}`),
-      ),
-    ),
+    }),
 );
 
 // Create a session within a project (D-10, D-11, D-12)
