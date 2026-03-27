@@ -45,6 +45,25 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **SAFE-01**: Graceful shutdown flushes or explicitly discards pending writes on app quit via before-quit event
 - [x] **SAFE-02**: Database integrity check (PRAGMA quick_check) runs on startup and warns if corruption detected
 
+### Project & Session Management (Phase 04.2)
+
+- [ ] **PROJ-01**: Project table in SQLite with id, name, directory, is_git_repo, worktree_base_path; tabs reference project_id via foreign key (D-07)
+- [ ] **PROJ-02**: ProjectStore service provides create, getAll, getById, remove with cascade delete of tabs and events (D-06, D-20)
+- [ ] **GIT-01**: GitService wraps git CLI via CommandExecutor for listBranches, getCurrentBranch, getRepoName, isGitRepo, listWorktrees, createWorktree, removeWorktree (D-21)
+- [ ] **GIT-02**: Git worktree creation uses `git worktree add` with branch-exists detection; existing worktrees offered for reuse (D-11, D-12)
+- [ ] **DIAL-01**: DialogService wraps Electron's native dialog.showOpenDialog for directory selection (D-22)
+- [ ] **RPC-01**: GitRpcGroup exposes all git operations to the renderer via typed RPC (D-21)
+- [ ] **RPC-02**: DialogRpcGroup exposes native directory picker to the renderer via typed RPC (D-22)
+- [ ] **RPC-03**: PersistenceRpcGroup extended with createProject, listProjects, removeProject, createTab for project CRUD (D-23)
+- [ ] **RPC-04**: All four RPC groups (Claude, Persistence, Git, Dialog) merged via RpcGroup.merge and wired into server/client/main.ts (D-24)
+- [ ] **ATOM-04**: Sidebar atoms replace mock data with real project/session state loaded from DB via RPC on app start (D-06, D-08)
+- [ ] **ATOM-05**: RendererRpcClient Context.Tag provides full typed RPC client to renderer atoms for calling persistence, git, and dialog operations
+- [ ] **UI-01**: Session creation dialog with branch autocomplete (Command component) and "Create worktree" checkbox (D-01, D-05, D-10, D-11)
+- [ ] **UI-02**: Project removal via right-click context menu with confirmation dialog showing session count (D-02, D-03)
+- [ ] **UI-03**: Project registration via native directory picker with auto-derived name and auto-created first session (D-16, D-17)
+- [ ] **UI-04**: Sidebar empty state ("No projects yet") with Register Project button; new project auto-expands and activates (D-09, D-18)
+- [ ] **UI-05**: Session click shows skeleton loading transition while atom state resolves (D-04)
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -96,12 +115,28 @@ Deferred to future release. Tracked but not in current roadmap.
 | RECON-03 | Phase 4 | Complete |
 | SAFE-01 | Phase 5 | Pending |
 | SAFE-02 | Phase 1 | Complete |
+| PROJ-01 | Phase 04.2 | Pending |
+| PROJ-02 | Phase 04.2 | Pending |
+| GIT-01 | Phase 04.2 | Pending |
+| GIT-02 | Phase 04.2 | Pending |
+| DIAL-01 | Phase 04.2 | Pending |
+| RPC-01 | Phase 04.2 | Pending |
+| RPC-02 | Phase 04.2 | Pending |
+| RPC-03 | Phase 04.2 | Pending |
+| RPC-04 | Phase 04.2 | Pending |
+| ATOM-04 | Phase 04.2 | Pending |
+| ATOM-05 | Phase 04.2 | Pending |
+| UI-01 | Phase 04.2 | Pending |
+| UI-02 | Phase 04.2 | Pending |
+| UI-03 | Phase 04.2 | Pending |
+| UI-04 | Phase 04.2 | Pending |
+| UI-05 | Phase 04.2 | Pending |
 
 **Coverage:**
-- v1 requirements: 20 total
-- Mapped to phases: 20
+- v1 requirements: 36 total
+- Mapped to phases: 36
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-25*
-*Last updated: 2026-03-25 after roadmap creation*
+*Last updated: 2026-03-27 after Phase 04.2 planning*
