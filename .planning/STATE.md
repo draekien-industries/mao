@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Phase 04.1 UI-SPEC approved
-last_updated: "2026-03-26T13:33:53.299Z"
+status: Executing
+stopped_at: Completed 04.1-01-PLAN.md
+last_updated: "2026-03-27T10:58:53Z"
 progress:
   total_phases: 8
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 13
+  completed_plans: 11
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Users can close the app and resume exactly where they left off
-**Current focus:** Phase 04 — session-reconstruction
+**Current focus:** Phase 04.1 — atom state foundation + sidebar shell
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
+Phase: 04.1
+Plan: 1 of 3 (complete)
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Plan: Not started
 | Phase 04 P01 | 5min | 2 tasks | 10 files |
 | Phase 04 P02 | 3min | 1 tasks | 3 files |
 | Phase 04 P03 | 5min | 2 tasks | 7 files |
+| Phase 04.1 P01 | 9min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -62,8 +63,10 @@ Plan: Not started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
--
-
+- [Phase 04.1]: FnContext callable syntax ctx(atom) not ctx.get(atom) for reading atoms in Effect programs
+- [Phase 04.1]: RegistryProvider takes options object {children} not JSX children
+- [Phase 04.1]: Kept AppRuntime export for backward compat; use-claude-chat.ts uses it directly
+- [Phase 04.1]: Used --legacy-peer-deps for React 19 + effect-atom peer dep mismatch
 - [Phase 01]: Used manual ASAR unpack + ignore function instead of AutoUnpackNativesPlugin (regression #3934)
 - [Phase 01]: Used makeDatabaseLive(dbPath) factory function instead of static DatabaseLive constant for runtime path injection
 - [Phase 02]: Used mock SqlClient pattern for TabStore tests (Electron ABI mismatch)
@@ -93,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-26T13:33:53.296Z
-Stopped at: Phase 04.1 UI-SPEC approved
-Resume file: .planning/phases/04.1-create-the-tab-interface-in-the-frontend-of-this-app/04.1-UI-SPEC.md
+Last session: 2026-03-27T10:58:53Z
+Stopped at: Completed 04.1-01-PLAN.md
+Resume file: .planning/phases/04.1-create-the-tab-interface-in-the-frontend-of-this-app/04.1-02-PLAN.md

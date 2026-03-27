@@ -83,10 +83,10 @@ Plans:
 **Goal:** Install effect-atom, migrate single-session chat from useClaudeChat hooks to atom-based state, build the two-tiered sidebar component with basic project/session structure. Proves the new architecture works end-to-end with one tab.
 **Requirements**: ATOM-01, ATOM-02, ATOM-03, SIDE-01, SIDE-02, SIDE-03
 **Depends on:** Phase 4
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
-- [ ] 04.1-01-PLAN.md — Install effect-atom, create atom runtime + per-tab chat state atoms, swap RegistryProvider
+- [x] 04.1-01-PLAN.md — Install effect-atom, create atom runtime + per-tab chat state atoms, swap RegistryProvider
 - [ ] 04.1-02-PLAN.md — Install collapsible, build AppSidebar with mock data, create SessionStatusIndicator
 - [ ] 04.1-03-PLAN.md — Wire sidebar into root layout, migrate chat panel to atoms, connect live status indicators
 
