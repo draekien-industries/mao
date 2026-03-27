@@ -12,25 +12,26 @@ import {
   sendMessageAtom,
   streamingTextAtom,
 } from "@/atoms/chat";
+import { activeTabIdAtom } from "@/atoms/sidebar";
 import { DebugEventPanel } from "@/components/debug-event-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useDebugPanel } from "./__root";
 
-const TAB_ID = "tab-1";
-
 export const Route = createFileRoute("/")({
   component: IndexComponent,
 });
 
 function IndexComponent() {
-  const messages = useAtomValue(messagesAtom(TAB_ID));
-  const streamingText = useAtomValue(streamingTextAtom(TAB_ID));
-  const isStreaming = useAtomValue(isStreamingAtom(TAB_ID));
-  const error = useAtomValue(errorAtom(TAB_ID));
-  const events = useAtomValue(eventsAtom(TAB_ID));
-  const sendMessage = useAtomSet(sendMessageAtom(TAB_ID));
+  const activeTabId = useAtomValue(activeTabIdAtom);
+  const tabKey = String(activeTabId ?? "none");
+  const messages = useAtomValue(messagesAtom(tabKey));
+  const streamingText = useAtomValue(streamingTextAtom(tabKey));
+  const isStreaming = useAtomValue(isStreamingAtom(tabKey));
+  const error = useAtomValue(errorAtom(tabKey));
+  const events = useAtomValue(eventsAtom(tabKey));
+  const sendMessage = useAtomSet(sendMessageAtom(tabKey));
   const { debugOpen } = useDebugPanel();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
