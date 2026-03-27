@@ -1,6 +1,8 @@
 import { RpcTest } from "@effect/rpc";
 import { Effect, Layer, Option } from "effect";
 import { describe, expect, it } from "vitest";
+import { Project } from "../../database/project-store/schemas";
+import { ProjectStore } from "../../database/project-store/service-definition";
 import {
   ChatMessage,
   ReconstructedSession,
@@ -17,6 +19,7 @@ const mockTab = new Tab({
   display_label: null,
   git_branch: null,
   id: 1,
+  project_id: null,
   session_id: "sess-1",
   updated_at: "2026-01-01T00:00:00Z",
 });
@@ -45,13 +48,31 @@ const mockReconstructor = {
 
 const mockTabStore = {
   create: () => Effect.succeed(mockTab),
-  delete: () => Effect.succeed(undefined as void),
+  delete: () => Effect.void,
   getAll: () => Effect.succeed([mockTab]),
   getById: () => Effect.succeed(Option.none()),
-  update: () => Effect.succeed(undefined as void),
+  update: () => Effect.void,
+};
+
+const mockProject = new Project({
+  created_at: "2026-01-01T00:00:00Z",
+  directory: "/home/user/project",
+  id: 1,
+  is_git_repo: true,
+  name: "test-project",
+  updated_at: "2026-01-01T00:00:00Z",
+  worktree_base_path: null,
+});
+
+const mockProjectStore = {
+  create: () => Effect.succeed(mockProject),
+  getAll: () => Effect.succeed([mockProject]),
+  getById: () => Effect.succeed(Option.none()),
+  remove: () => Effect.void,
 };
 
 const testLayer = PersistenceRpcHandlers.pipe(
+  Layer.provide(Layer.succeed(ProjectStore, mockProjectStore)),
   Layer.provide(Layer.succeed(SessionReconstructor, mockReconstructor)),
   Layer.provide(Layer.succeed(TabStore, mockTabStore)),
 );
