@@ -1,6 +1,9 @@
+import { useAtomValue } from "@effect-atom/atom-react";
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { mockProjects } from "@/atoms/sidebar";
+import { tabStatusAtom } from "@/atoms/chat";
+import type { MockSession } from "@/atoms/sidebar";
+import { activeTabIdAtom, mockProjects } from "@/atoms/sidebar";
 import { SessionStatusIndicator } from "@/components/session-status-indicator";
 import {
   Collapsible,
@@ -20,9 +23,28 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
-const ACTIVE_TAB_ID = "tab-1";
+function SessionEntry({
+  isActive,
+  session,
+}: {
+  readonly isActive: boolean;
+  readonly session: MockSession;
+}) {
+  const liveStatus = useAtomValue(tabStatusAtom(session.id));
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton isActive={isActive}>
+        <span className="truncate">{session.branchLabel}</span>
+        <SessionStatusIndicator status={liveStatus} />
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
 
 function AppSidebar() {
+  const activeTabId = useAtomValue(activeTabIdAtom);
+
   return (
     <Sidebar collapsible="offcanvas" side="left">
       <SidebarHeader className="flex flex-row items-center justify-between">
@@ -51,16 +73,11 @@ function AppSidebar() {
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {project.sessions.map((session) => (
-                      <SidebarMenuItem key={session.id}>
-                        <SidebarMenuButton
-                          isActive={session.id === ACTIVE_TAB_ID}
-                        >
-                          <span className="truncate">
-                            {session.branchLabel}
-                          </span>
-                          <SessionStatusIndicator status={session.status} />
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
+                      <SessionEntry
+                        isActive={session.id === activeTabId}
+                        key={session.id}
+                        session={session}
+                      />
                     ))}
                   </SidebarMenu>
                 </SidebarGroupContent>
