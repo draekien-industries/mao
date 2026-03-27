@@ -22,6 +22,13 @@ Users can close the app and resume exactly where they left off — every tab, ev
 
 - [ ] Support multiple concurrent tabs, each with independent persistence
 
+### Validated in Phase 04.1: Atom State Foundation + Sidebar Shell
+
+- ✓ effect-atom runtime with RegistryProvider replacing ManagedRuntime pattern — Atom.runtime(ClaudeCliFromRpc) with per-tab state via Atom.family
+- ✓ Per-tab chat state atoms (messages, streaming, session, error, events) with derived status atom for sidebar indicators
+- ✓ Two-tiered sidebar with collapsible project/session structure and live streaming status indicators
+- ✓ Chat panel migrated from useClaudeChat hook to atom-based state, proving architecture end-to-end with one tab
+
 ### Validated in Phase 04: Session Reconstruction
 
 - ✓ Reconstruct full chat session state from stored events on app reopen — SessionReconstructor service folds StoredEvents into ChatMessage arrays via typed event fold logic
@@ -88,4 +95,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-26 after Phase 04 completion*
+*Last updated: 2026-03-27 after Phase 04.1 completion*
