@@ -1,7 +1,7 @@
 import { RpcClient } from "@effect/rpc";
 import { RpcClientError } from "@effect/rpc/RpcClientError";
 import type { FromServerEncoded } from "@effect/rpc/RpcMessage";
-import { Effect, Layer, Runtime, Stream } from "effect";
+import { Context, Effect, Layer, Runtime, Stream } from "effect";
 import type { ClaudeCliError } from "../claude-cli/errors";
 import { ClaudeCliSpawnError } from "../claude-cli/errors";
 import { ClaudeCli } from "../claude-cli/service-definition";
@@ -61,4 +61,19 @@ export const ClaudeCliFromRpc = Layer.scoped(
       cont: (params) => client.cont(params).pipe(Stream.mapError(mapRpcError)),
     };
   }),
+).pipe(Layer.provide(ElectronClientProtocol));
+
+// Tag for accessing the full typed RPC client in the renderer.
+// Lets sidebar atoms call persistence, git, and dialog RPCs directly.
+const _makeClient = RpcClient.make(MergedRpcGroup);
+type MergedRpcClient = Effect.Effect.Success<typeof _makeClient>;
+
+export class RendererRpcClient extends Context.Tag("RendererRpcClient")<
+  RendererRpcClient,
+  MergedRpcClient
+>() {}
+
+export const RendererRpcClientLayer = Layer.scoped(
+  RendererRpcClient,
+  _makeClient,
 ).pipe(Layer.provide(ElectronClientProtocol));
