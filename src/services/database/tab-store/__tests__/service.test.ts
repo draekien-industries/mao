@@ -13,6 +13,7 @@ interface InMemoryTab {
   display_label: string | null;
   git_branch: string | null;
   id: number;
+  project_id: number | null;
   session_id: string | null;
   updated_at: string;
 }
@@ -43,6 +44,7 @@ const makeInMemoryDatabase = () => {
         cwd: params[1] as string,
         git_branch: params[2] as string | null,
         display_label: params[3] as string | null,
+        project_id: params[4] as number | null,
         created_at: now,
         updated_at: now,
       };
@@ -87,6 +89,8 @@ const makeInMemoryDatabase = () => {
             tab.git_branch = updates.git_branch as string | null;
           if ("display_label" in updates)
             tab.display_label = updates.display_label as string | null;
+          if ("project_id" in updates)
+            tab.project_id = updates.project_id as number | null;
           if ("updated_at" in updates)
             tab.updated_at = updates.updated_at as string;
         }

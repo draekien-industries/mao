@@ -3,11 +3,15 @@ import { Effect, Layer, Mailbox, Option, Runtime } from "effect";
 import { ipcMain } from "electron";
 import { ClaudeCli } from "../claude-cli/service-definition";
 import { annotations } from "../diagnostics";
+import { DialogRpcGroup } from "../dialog-rpc/group";
+import { GitRpcGroup } from "../git-rpc/group";
 import { PersistenceRpcGroup } from "../persistence-rpc/group";
 import { RPC_FROM_CLIENT, RPC_FROM_SERVER } from "./channels";
 import { ClaudeRpcGroup } from "./group";
 
-const MergedRpcGroup = ClaudeRpcGroup.merge(PersistenceRpcGroup);
+const MergedRpcGroup = ClaudeRpcGroup.merge(PersistenceRpcGroup)
+  .merge(GitRpcGroup)
+  .merge(DialogRpcGroup);
 
 export const ClaudeRpcHandlers = ClaudeRpcGroup.toLayer(
   Effect.gen(function* () {
