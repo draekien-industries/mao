@@ -91,12 +91,16 @@ Plans:
 ### Phase 04.2: Project and session management with git integration (INSERTED)
 
 **Goal:** Project registration via native directory picker, session creation with branch/worktree selection, git worktree creation via `git worktree add`, project removal with cascade. New RPC endpoints for git operations on the main process.
-**Requirements**: TBD
+**Requirements**: RPC-01, RPC-02, RPC-03, RPC-04
 **Depends on:** Phase 04.1
-**Plans:** 0 plans
+**Plans:** 5 plans (3 complete, 2 remaining)
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 04.2 to break down)
+- [x] 04.2-01-PLAN.md -- ProjectStore service with cascade delete
+- [x] 04.2-02-PLAN.md -- GitService and DialogService implementations
+- [x] 04.2-03-PLAN.md -- RPC layer: GitRpcGroup, DialogRpcGroup, extended PersistenceRpcGroup, four-way merge
+- [ ] 04.2-04-PLAN.md -- Sidebar React component
+- [ ] 04.2-05-PLAN.md -- Project management UI
 
 ### Phase 04.3: Multi-tab orchestration with background streaming (INSERTED)
 
