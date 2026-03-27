@@ -78,6 +78,16 @@ Plans:
 - [x] 04-02-PLAN.md — SessionReconstructor service with TDD event fold logic
 - [x] 04-03-PLAN.md — Create PersistenceRpcGroup, wire merged RPC groups into server/client/main.ts
 
+### Phase 04.4: refine logging approach (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 4
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 04.4 to break down)
+
 ### Phase 04.1: Atom state foundation + sidebar shell (INSERTED)
 
 **Goal:** Install effect-atom, migrate single-session chat from useClaudeChat hooks to atom-based state, build the two-tiered sidebar component with basic project/session structure. Proves the new architecture works end-to-end with one tab.
