@@ -157,7 +157,7 @@ export const makeGitServiceLive = () =>
         basePath: string,
       ) =>
         Effect.gen(function* () {
-          yield* Effect.logInfo("Creating worktree");
+          yield* Effect.logDebug("Creating worktree");
           const worktreePath = path.join(basePath, branchName);
           const branches = yield* listBranches(cwd);
           const branchExists = branches.includes(branchName);
@@ -170,7 +170,7 @@ export const makeGitServiceLive = () =>
 
       const removeWorktree = (cwd: string, worktreePath: string) =>
         Effect.gen(function* () {
-          yield* Effect.logInfo("Removing worktree");
+          yield* Effect.logDebug("Removing worktree");
           yield* runGitCommand(
             ["worktree", "remove", worktreePath],
             cwd,

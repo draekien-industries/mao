@@ -93,11 +93,11 @@ Plans:
 **Goal:** Production error file logging, devLog consolidation, and log level granularity (Debug/Info/Error convention) across all services and atoms
 **Requirements**: LOG-01, LOG-02, LOG-03, LOG-04, LOG-05, LOG-06
 **Depends on:** Phase 4
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 04.4-01-PLAN.md — ProdFileLogger + devLog consolidation in diagnostics.ts, tests, main.ts wiring
-- [ ] 04.4-02-PLAN.md — Log level migration (logInfo to logDebug for per-operation entry/exit across 8 files)
+- [x] 04.4-02-PLAN.md — Log level migration (logInfo to logDebug for per-operation entry/exit across 8 files)
 
 ### Phase 04.1: Atom state foundation + sidebar shell (INSERTED)
 

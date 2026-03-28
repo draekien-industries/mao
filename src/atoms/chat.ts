@@ -102,7 +102,7 @@ export const sendMessageAtom = appRuntime.fn(
   ) =>
     Effect.gen(function* () {
       const { tabId, prompt } = params;
-      yield* Effect.logInfo("Sending message").pipe(
+      yield* Effect.logDebug("Sending message").pipe(
         Effect.annotateLogs(annotations.tabId, tabId),
       );
 

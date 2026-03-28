@@ -65,7 +65,7 @@ const buildStream = (
 
   return Stream.unwrapScoped(
     Effect.gen(function* () {
-      yield* Effect.logInfo("Spawning CLI process").pipe(
+      yield* Effect.logDebug("Spawning CLI process").pipe(
         Effect.annotateLogs("args", args.join(" ")),
       );
 
@@ -84,7 +84,7 @@ const buildStream = (
         ),
       );
 
-      yield* Effect.logInfo("CLI process started");
+      yield* Effect.logDebug("CLI process started");
 
       // Collect stderr concurrently; forkScoped ties the fiber lifetime to the stream scope
       const stderrFiber = yield* process.stderr.pipe(
@@ -112,7 +112,7 @@ const buildStream = (
           ),
         );
 
-        yield* Effect.logInfo("CLI process exited").pipe(
+        yield* Effect.logDebug("CLI process exited").pipe(
           Effect.annotateLogs("exitCode", exitCode),
         );
 

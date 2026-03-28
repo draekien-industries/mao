@@ -50,7 +50,7 @@ const loadProjectsEffect = (ctx: Atom.FnContext) =>
 // If no tab is active, default to the first available tab.
 export const loadProjectsAtom = appRuntime.fn((_: void, ctx: Atom.FnContext) =>
   Effect.gen(function* () {
-    yield* Effect.logInfo("Loading projects");
+    yield* Effect.logDebug("Loading projects");
     yield* loadProjectsEffect(ctx);
     const activeId = ctx(activeTabIdAtom);
     if (activeId === null) {
@@ -96,7 +96,7 @@ export const loadBranchesAtom = appRuntime.fn(
 export const registerProjectAtom = appRuntime.fn(
   (_: void, ctx: Atom.FnContext) =>
     Effect.gen(function* () {
-      yield* Effect.logInfo("Registering project");
+      yield* Effect.logDebug("Registering project");
       const client = yield* RendererRpcClient;
 
       // D-16: Open native directory picker
@@ -178,7 +178,7 @@ export const createSessionAtom = appRuntime.fn(
     ctx: Atom.FnContext,
   ) =>
     Effect.gen(function* () {
-      yield* Effect.logInfo("Creating session");
+      yield* Effect.logDebug("Creating session");
       const client = yield* RendererRpcClient;
 
       let sessionCwd = params.cwd;
@@ -235,7 +235,7 @@ export const createSessionAtom = appRuntime.fn(
 export const removeProjectAtom = appRuntime.fn(
   (projectId: number, ctx: Atom.FnContext) =>
     Effect.gen(function* () {
-      yield* Effect.logInfo("Removing project").pipe(
+      yield* Effect.logDebug("Removing project").pipe(
         Effect.annotateLogs("projectId", String(projectId)),
       );
       const client = yield* RendererRpcClient;
