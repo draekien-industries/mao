@@ -2,6 +2,7 @@ import { Registry } from "@effect-atom/atom-react";
 import { describe, expect, it } from "vitest";
 import {
   activeStreamCountAtom,
+  cwdAtom,
   draftInputAtom,
   errorAtom,
   isStreamingAtom,
@@ -30,6 +31,18 @@ describe("chat atoms", () => {
       const a = streamingTextAtom("tab-x");
       const b = streamingTextAtom("tab-x");
       expect(a).toBe(b);
+    });
+
+    it("cwdAtom returns same reference for same tabId", () => {
+      const a = cwdAtom("tab-1");
+      const b = cwdAtom("tab-1");
+      expect(a).toBe(b);
+    });
+
+    it("cwdAtom returns different references for different tabIds", () => {
+      const a = cwdAtom("tab-1");
+      const b = cwdAtom("tab-2");
+      expect(a).not.toBe(b);
     });
   });
 
@@ -140,6 +153,11 @@ describe("chat atoms", () => {
     it("activeStreamCountAtom defaults to 0", () => {
       const registry = Registry.make();
       expect(registry.get(activeStreamCountAtom)).toBe(0);
+    });
+
+    it("cwdAtom defaults to empty string", () => {
+      const registry = Registry.make();
+      expect(registry.get(cwdAtom("fresh-tab"))).toBe("");
     });
   });
 });
