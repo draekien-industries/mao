@@ -1,23 +1,27 @@
 import { useAtomSet, useAtomValue } from "@effect-atom/atom-react";
 import { ArrowUp02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useForm } from "@tanstack/react-form";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import {
+  draftInputAtom,
   errorAtom,
   eventsAtom,
   isStreamingAtom,
   messagesAtom,
   sendMessageAtom,
   streamingTextAtom,
+  unreadAtom,
 } from "@/atoms/chat";
+import { autoScrollAtom, scrollPositionAtom } from "@/atoms/scroll";
 import { activeTabIdAtom } from "@/atoms/sidebar";
 import { DebugEventPanel } from "@/components/debug-event-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useDebugPanel } from "./__root";
+
+const AT_BOTTOM_THRESHOLD = 32;
 
 export const Route = createFileRoute("/")({
   component: IndexComponent,
@@ -34,32 +38,75 @@ function IndexComponent() {
   const sendMessage = useAtomSet(sendMessageAtom);
   const { debugOpen } = useDebugPanel();
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const scrollRafRef = useRef(0);
+  // Per-tab draft input via atom (D-16)
+  const draft = useAtomValue(draftInputAtom(tabKey));
+  const setDraft = useAtomSet(draftInputAtom(tabKey));
 
-  const form = useForm({
-    defaultValues: { prompt: "" },
-    onSubmit: ({ value }) => {
-      const trimmed = value.prompt.trim();
-      if (!trimmed) return;
-      sendMessage({ tabId: tabKey, prompt: trimmed });
-      form.reset();
-    },
-  });
+  // Per-tab scroll state atoms
+  const autoScroll = useAtomValue(autoScrollAtom(tabKey));
+  const setAutoScroll = useAtomSet(autoScrollAtom(tabKey));
+  const savedScrollPos = useAtomValue(scrollPositionAtom(tabKey));
+  const setScrollPosition = useAtomSet(scrollPositionAtom(tabKey));
+  const setUnread = useAtomSet(unreadAtom(tabKey));
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Smart scroll event handler: track position, toggle auto-scroll, clear unread (D-08)
   useEffect(() => {
-    cancelAnimationFrame(scrollRafRef.current);
-    scrollRafRef.current = requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({
-        behavior: isStreaming ? "instant" : "smooth",
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    let rafId = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const atBottom =
+          el.scrollHeight - el.scrollTop - el.clientHeight <
+          AT_BOTTOM_THRESHOLD;
+        setAutoScroll(atBottom);
+        setScrollPosition(el.scrollTop);
+        if (atBottom) {
+          setUnread(false);
+        }
       });
-    });
-  }, [messages, streamingText, isStreaming]);
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(rafId);
+      el.removeEventListener("scroll", onScroll);
+    };
+  }, [tabKey, setAutoScroll, setScrollPosition, setUnread]);
+
+  // Restore scroll position on tab switch (D-13, D-15 instant)
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    el.scrollTop = savedScrollPos;
+  }, [tabKey, savedScrollPos]);
+
+  // Auto-scroll on new content when enabled (D-14)
+  useEffect(() => {
+    if (!autoScroll) return;
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [messages, streamingText, autoScroll]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const trimmed = draft.trim();
+    if (!trimmed || isStreaming) return;
+    sendMessage({ tabId: tabKey, prompt: trimmed });
+    setDraft("");
+  };
 
   return (
     <div className="flex h-full">
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex-1 space-y-3 overflow-y-auto p-4">
+        <div
+          className="flex-1 space-y-3 overflow-y-auto p-4"
+          ref={scrollContainerRef}
+        >
           {messages.length === 0 && !streamingText && (
             <p className="py-16 text-center text-sm text-muted-foreground">
               Send a message to start chatting.
@@ -95,8 +142,6 @@ function IndexComponent() {
               </div>
             </div>
           )}
-
-          <div ref={messagesEndRef} />
         </div>
 
         {error && (
@@ -107,26 +152,14 @@ function IndexComponent() {
 
         <form
           className="flex gap-2 border-t border-border p-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            form.handleSubmit();
-          }}
+          onSubmit={handleSubmit}
         >
-          <form.Field
-            children={(field) => (
-              <Input
-                autoFocus
-                disabled={isStreaming}
-                onBlur={field.handleBlur}
-                onChange={(e) => field.handleChange(e.target.value)}
-                placeholder={
-                  isStreaming ? "Waiting for response..." : "Message..."
-                }
-                value={field.state.value}
-              />
-            )}
-            name="prompt"
+          <Input
+            autoFocus
+            disabled={isStreaming}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder={isStreaming ? "Waiting for response..." : "Message..."}
+            value={draft}
           />
           <Button disabled={isStreaming} size="icon" type="submit">
             <HugeiconsIcon icon={ArrowUp02Icon} strokeWidth={2} />
