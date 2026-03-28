@@ -27,9 +27,29 @@ export const Route = createFileRoute("/")({
   component: IndexComponent,
 });
 
+// Outer component: guards against null activeTabId so atom family hooks
+// are never called with a "none" key. This ensures unreadAtom, messagesAtom,
+// etc. are always keyed to a real numeric tab ID matching the sidebar atoms.
 function IndexComponent() {
   const activeTabId = useAtomValue(activeTabIdAtom);
-  const tabKey = String(activeTabId ?? "none");
+
+  if (activeTabId === null) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-sm text-muted-foreground">
+          Select a session to start chatting.
+        </p>
+      </div>
+    );
+  }
+
+  return <ChatPanel tabKey={String(activeTabId)} />;
+}
+
+// Inner component: receives a guaranteed-valid tabKey prop.
+// Only mounts when activeTabId is a real number, so all atom family
+// subscriptions use the actual tab ID (e.g. "42"), never "none".
+function ChatPanel({ tabKey }: { readonly tabKey: string }) {
   const messages = useAtomValue(messagesAtom(tabKey));
   const streamingText = useAtomValue(streamingTextAtom(tabKey));
   const isStreaming = useAtomValue(isStreamingAtom(tabKey));
