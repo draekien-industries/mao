@@ -1,11 +1,16 @@
 import type { SqlClient as SqlClientNamespace } from "@effect/sql";
 import { SqlClient } from "@effect/sql";
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Schema } from "effect";
 import { describe, expect, it } from "vitest";
+import { ResultEvent, SystemInitEvent } from "../../../claude-cli/events";
 import { Database } from "../../service-definition";
-import { isUserMessage } from "../schemas";
+import { isUserMessage, UserMessageEvent } from "../schemas";
 import { makeEventStoreLive } from "../service";
 import { EventStore } from "../service-definition";
+
+const encodeSystemInit = Schema.encodeSync(Schema.parseJson(SystemInitEvent));
+const encodeResult = Schema.encodeSync(Schema.parseJson(ResultEvent));
+const encodeUserMessage = Schema.encodeSync(Schema.parseJson(UserMessageEvent));
 
 // In-memory event store for mocking the SQL layer
 interface InMemoryEvent {
@@ -68,7 +73,7 @@ const makeInMemoryDatabase = () => {
   };
 
   const mockSql = Object.assign(sqlHandler, {
-    unsafe: (rawSql: string) => Effect.succeed([]),
+    unsafe: (_rawSql: string) => Effect.succeed([]),
     safe: undefined,
     withoutTransforms: () => mockSql,
     reserve: Effect.succeed({}),
@@ -120,7 +125,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-1",
           "system",
-          JSON.stringify({
+          encodeSystemInit({
             type: "system",
             subtype: "init",
             session_id: "session-1",
@@ -143,7 +148,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-seq",
           "system",
-          JSON.stringify({
+          encodeSystemInit({
             type: "system",
             subtype: "init",
             session_id: "session-seq",
@@ -153,7 +158,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-seq",
           "result",
-          JSON.stringify({
+          encodeResult({
             type: "result",
             subtype: "success",
             result: "done",
@@ -177,7 +182,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-um",
           "user_message",
-          JSON.stringify({ type: "user_message", prompt: "hello" }),
+          encodeUserMessage({ type: "user_message", prompt: "hello" }),
         );
         const events = yield* store.getBySession("session-um");
         return events;
@@ -199,7 +204,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-order",
           "system",
-          JSON.stringify({
+          encodeSystemInit({
             type: "system",
             subtype: "init",
             session_id: "session-order",
@@ -209,12 +214,12 @@ describe("EventStore", () => {
         yield* store.append(
           "session-order",
           "user_message",
-          JSON.stringify({ type: "user_message", prompt: "first" }),
+          encodeUserMessage({ type: "user_message", prompt: "first" }),
         );
         yield* store.append(
           "session-order",
           "result",
-          JSON.stringify({
+          encodeResult({
             type: "result",
             subtype: "success",
             result: "done",
@@ -253,7 +258,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-A",
           "system",
-          JSON.stringify({
+          encodeSystemInit({
             type: "system",
             subtype: "init",
             session_id: "session-A",
@@ -263,7 +268,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-B",
           "user_message",
-          JSON.stringify({ type: "user_message", prompt: "from B" }),
+          encodeUserMessage({ type: "user_message", prompt: "from B" }),
         );
         const eventsA = yield* store.getBySession("session-A");
         const eventsB = yield* store.getBySession("session-B");
@@ -284,7 +289,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-purge",
           "system",
-          JSON.stringify({
+          encodeSystemInit({
             type: "system",
             subtype: "init",
             session_id: "session-purge",
@@ -294,7 +299,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-purge",
           "user_message",
-          JSON.stringify({ type: "user_message", prompt: "bye" }),
+          encodeUserMessage({ type: "user_message", prompt: "bye" }),
         );
         yield* store.purgeSession("session-purge");
         const events = yield* store.getBySession("session-purge");
@@ -312,7 +317,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-meta",
           "system",
-          JSON.stringify({
+          encodeSystemInit({
             type: "system",
             subtype: "init",
             session_id: "session-meta",
@@ -322,7 +327,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-meta",
           "user_message",
-          JSON.stringify({ type: "user_message", prompt: "hello" }),
+          encodeUserMessage({ type: "user_message", prompt: "hello" }),
         );
         return yield* store.getBySessionWithMeta("session-meta");
       }),
@@ -354,7 +359,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-keep",
           "system",
-          JSON.stringify({
+          encodeSystemInit({
             type: "system",
             subtype: "init",
             session_id: "session-keep",
@@ -364,7 +369,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-remove",
           "user_message",
-          JSON.stringify({ type: "user_message", prompt: "delete me" }),
+          encodeUserMessage({ type: "user_message", prompt: "delete me" }),
         );
         yield* store.purgeSession("session-remove");
         const kept = yield* store.getBySession("session-keep");
