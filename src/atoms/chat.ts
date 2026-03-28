@@ -48,18 +48,43 @@ export const eventsAtom = Atom.family((_tabId: string) =>
   Atom.make<ReadonlyArray<ClaudeEvent>>([]).pipe(Atom.keepAlive),
 );
 
-// --- Derived status atom for sidebar indicators ---
-// D-05 corrected: Status derived from primitive writable atoms.
-// streaming > error > idle precedence.
+// --- New per-tab state atoms for multi-tab orchestration ---
 
-export type TabStatus = "streaming" | "error" | "idle";
+export const unreadAtom = Atom.family((_tabId: string) =>
+  Atom.make(false).pipe(Atom.keepAlive),
+);
+
+export const toolInputAtom = Atom.family((_tabId: string) =>
+  Atom.make(false).pipe(Atom.keepAlive),
+);
+
+export const draftInputAtom = Atom.family((_tabId: string) =>
+  Atom.make("").pipe(Atom.keepAlive),
+);
+
+// Global concurrency counter — how many tabs are actively streaming
+export const activeStreamCountAtom = Atom.make(0).pipe(Atom.keepAlive);
+
+// --- Derived status atom for sidebar indicators ---
+// D-05: Priority order error > tool-input > unread > streaming > idle
+
+export type TabStatus =
+  | "streaming"
+  | "unread"
+  | "error"
+  | "tool-input"
+  | "idle";
 
 export const tabStatusAtom = Atom.family((tabId: string) =>
   Atom.make((get) => {
-    const streaming = get(isStreamingAtom(tabId));
     const err = get(errorAtom(tabId));
-    if (streaming) return "streaming" as const;
+    const toolInput = get(toolInputAtom(tabId));
+    const unread = get(unreadAtom(tabId));
+    const streaming = get(isStreamingAtom(tabId));
     if (err !== null) return "error" as const;
+    if (toolInput) return "tool-input" as const;
+    if (unread) return "unread" as const;
+    if (streaming) return "streaming" as const;
     return "idle" as const;
   }),
 );
