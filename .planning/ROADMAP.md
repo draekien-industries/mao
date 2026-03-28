@@ -83,10 +83,10 @@ Plans:
 **Goal:** Thread each tab's stored working directory through to CLI process spawning so queries and resumes run in the correct project directory
 **Requirements**: CWD-01, CWD-02, CWD-03
 **Depends on:** Phase 4
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 04.5-01-PLAN.md — Add cwdAtom family, populate on all tab activation paths, thread cwd into sendMessageAtom
+- [x] 04.5-01-PLAN.md — Add cwdAtom family, populate on all tab activation paths, thread cwd into sendMessageAtom
 
 ### Phase 04.4: refine logging approach (INSERTED)
 
