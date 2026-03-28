@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-type SessionStatus = "streaming" | "unread" | "error" | "idle";
+type SessionStatus = "streaming" | "unread" | "error" | "tool-input" | "idle";
 
 function SessionStatusIndicator({
   status,
@@ -16,6 +16,7 @@ function SessionStatusIndicator({
         status === "streaming" && "animate-pulse bg-sidebar-primary",
         status === "unread" && "bg-sidebar-primary",
         status === "error" && "bg-destructive",
+        status === "tool-input" && "bg-status-tool-input",
       )}
     />
   );
