@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 04.2-04-PLAN.md
-last_updated: "2026-03-27T14:00:55.004Z"
+stopped_at: Completed 04.3-01-PLAN.md
+last_updated: "2026-03-28T00:19:06.482Z"
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 18
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-25)
 ## Current Position
 
 Phase: 04.2
-Plan: 4 of 05 complete
+Plan: 5 of 05 complete
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Plan: 4 of 05 complete
 | Phase 04 P03 | 5min | 2 tasks | 7 files |
 | Phase 04.2 P03 | 7min | 2 tasks | 18 files |
 | Phase 04.2 P04 | 9min | 2 tasks | 14 files |
+| Phase 04.3 P01 | 4min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Schema.Array(Tab) works directly as RPC success type (no wrapper class needed)
 - [Phase 04.2]: Used Effect.Effect.Success type inference for MergedRpcClient type instead of complex RpcGroup.Rpcs generic
 - [Phase 04.2]: Changed activeTabIdAtom from string to number|null to match SQLite integer tab IDs
+- [Phase 04.3]: Used Effect.ensuring for guaranteed activeStreamCount decrement
+- [Phase 04.3]: Reversed tabStatusAtom priority from streaming-first to error-first per D-05
 
 ### Pending Todos
 
@@ -99,6 +102,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-27T14:00:55.000Z
-Stopped at: Completed 04.2-04-PLAN.md
+Last session: 2026-03-28T00:19:06.479Z
+Stopped at: Completed 04.3-01-PLAN.md
 Resume file: None
