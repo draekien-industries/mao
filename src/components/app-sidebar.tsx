@@ -32,6 +32,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import type { Tab } from "@/services/database/tab-store/schemas";
+import { ConcurrencyWarningBanner } from "./concurrency-warning-banner";
 import { CreateSessionDialog } from "./create-session-dialog";
 import { ProjectContextMenu } from "./project-context-menu";
 import { RemoveProjectDialog } from "./remove-project-dialog";
@@ -184,6 +185,7 @@ function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
+        <ConcurrencyWarningBanner />
         {projects.length === 0 ? (
           <EmptyState />
         ) : (
