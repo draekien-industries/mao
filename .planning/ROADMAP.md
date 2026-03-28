@@ -78,6 +78,16 @@ Plans:
 - [x] 04-02-PLAN.md — SessionReconstructor service with TDD event fold logic
 - [x] 04-03-PLAN.md — Create PersistenceRpcGroup, wire merged RPC groups into server/client/main.ts
 
+### Phase 04.5: Fix tab working directory mismatch (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 4
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 04.5 to break down)
+
 ### Phase 04.4: refine logging approach (INSERTED)
 
 **Goal:** [Urgent work - to be planned]

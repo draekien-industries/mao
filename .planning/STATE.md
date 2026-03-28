@@ -103,6 +103,7 @@ Recent decisions affecting current work:
 - Phase 04.2 inserted after Phase 04.1: Project and session management with git integration (URGENT)
 - Phase 04.3 inserted after Phase 04.2: Multi-tab orchestration with background streaming (URGENT)
 - Phase 04.4 inserted after Phase 04: refine logging approach (URGENT)
+- Phase 04.5 inserted after Phase 04: Fix tab working directory mismatch (URGENT)
 
 ### Blockers/Concerns
 
