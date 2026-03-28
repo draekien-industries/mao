@@ -1,7 +1,7 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { Effect, Logger } from "effect";
+import { Effect } from "effect";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { devLog, makeProdFileLogger } from "../diagnostics";
 
@@ -19,9 +19,7 @@ describe("makeProdFileLogger", () => {
   });
 
   it("writes JSON lines to the log file when Effect.logError is called", async () => {
-    const program = Effect.gen(function* () {
-      yield* Effect.logError("something went wrong");
-    });
+    const program = Effect.logError("something went wrong");
 
     await Effect.runPromise(
       program.pipe(Effect.provide(makeProdFileLogger(logFilePath))),
@@ -39,9 +37,7 @@ describe("makeProdFileLogger", () => {
   });
 
   it("ignores Effect.logInfo calls (no file output)", async () => {
-    const program = Effect.gen(function* () {
-      yield* Effect.logInfo("info message");
-    });
+    const program = Effect.logInfo("info message");
 
     await Effect.runPromise(
       program.pipe(Effect.provide(makeProdFileLogger(logFilePath))),
@@ -57,9 +53,7 @@ describe("makeProdFileLogger", () => {
   });
 
   it("ignores Effect.logDebug calls (no file output)", async () => {
-    const program = Effect.gen(function* () {
-      yield* Effect.logDebug("debug message");
-    });
+    const program = Effect.logDebug("debug message");
 
     await Effect.runPromise(
       program.pipe(Effect.provide(makeProdFileLogger(logFilePath))),
@@ -75,11 +69,9 @@ describe("makeProdFileLogger", () => {
   });
 
   it("each JSON line contains timestamp, level, message, and annotations fields", async () => {
-    const program = Effect.gen(function* () {
-      yield* Effect.logError("test error").pipe(
-        Effect.annotateLogs("service", "test-service"),
-      );
-    });
+    const program = Effect.logError("test error").pipe(
+      Effect.annotateLogs("service", "test-service"),
+    );
 
     await Effect.runPromise(
       program.pipe(Effect.provide(makeProdFileLogger(logFilePath))),
@@ -111,9 +103,7 @@ describe("makeProdFileLogger", () => {
     }
     writeFileSync(logFilePath, `${bigLines.join("\n")}\n`, "utf-8");
 
-    const program = Effect.gen(function* () {
-      yield* Effect.logError("trigger truncation");
-    });
+    const program = Effect.logError("trigger truncation");
 
     await Effect.runPromise(
       program.pipe(Effect.provide(makeProdFileLogger(logFilePath))),
