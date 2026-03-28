@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: SQLite Infrastructure** - Native module packaging, database creation, connection lifecycle, and startup integrity checks
 - [ ] **Phase 2: Storage Services** - EventStore and TabStore services providing the append/query API for persisted data
 - [ ] **Phase 3: Write Pipeline** - Stream buffer and PersistentClaudeCli decorator that intercept CLI events and persist them transparently
-- [x] **Phase 4: Session Reconstruction** - Read-path service that rebuilds full conversation state from stored events (completed 2026-03-26)
+- [x] **Phase 4: Session Reconstruction** - Read-path service that rebuilds full conversation state from stored events (completed 2026-03-26)
 - [ ] **Phase 5: Renderer Integration** - Tab restore, session hydration in the UI, and graceful shutdown ensuring data safety
 
 ## Phase Details
@@ -114,13 +114,15 @@ Plans:
 
 ### Phase 04.3: Multi-tab orchestration with background streaming (INSERTED)
 
-**Goal:** Multiple concurrent CLI streams running in background across tabs, tab switching without losing state, status indicators (streaming/unread/error), soft concurrency limit with warning.
-**Requirements**: TBD
+**Goal:** Multiple concurrent CLI streams running in background across tabs, tab switching without losing state, status indicators (streaming/unread/error/tool-input), smart scroll with per-tab position preservation, soft concurrency limit with warning banner.
+**Requirements**: D-01 through D-16 (from 04.3-CONTEXT.md)
 **Depends on:** Phase 04.2
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 04.3 to break down)
+- [ ] 04.3-01-PLAN.md -- New atoms (unread, toolInput, draftInput, scroll), 5-state TabStatus, sendMessageAtom concurrency/unread/tool-input tracking, CSS tokens
+- [ ] 04.3-02-PLAN.md -- Smart scroll behavior, draft input, tab switch scroll preservation in chat panel
+- [ ] 04.3-03-PLAN.md -- SessionStatusIndicator tool-input extension, ConcurrencyWarningBanner, sidebar wiring
 
 ### Phase 5: Renderer Integration
 **Goal**: Users experience seamless app restart — tabs restore, conversations appear, and quitting the app never loses data
