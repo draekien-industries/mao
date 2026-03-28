@@ -112,12 +112,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-<<<<<<< HEAD
 Last activity: 2026-03-28
 Stopped at: Completed 04.3-03-PLAN.md
 Resume file: None
-=======
-Last session: 2026-03-28T00:27:23.285Z
-Stopped at: Completed 04.3-01-PLAN.md
-Resume file: None
->>>>>>> worktree-agent-aa52278c
