@@ -22,6 +22,14 @@ Users can close the app and resume exactly where they left off — every tab, ev
 
 - [ ] Support multiple concurrent tabs, each with independent persistence
 
+### Validated in Phase 04.3: Multi-Tab Orchestration with Background Streaming
+
+- ✓ 5-state tab status derivation (error > tool-input > unread > streaming > idle) with per-tab atom families for unread, tool-input, draft input, scroll position, and auto-scroll
+- ✓ Smart scroll behavior: auto-scroll at bottom, disable on scroll up, re-enable + clear unread on scroll to bottom, per-tab position preservation across tab switches
+- ✓ Concurrency tracking with Effect.ensuring for leak-safe activeStreamCount, warning banner at 5+ streams
+- ✓ Tool-input detection via ToolUseBlock content inspection, orange status indicator dot
+- ✓ Per-tab draft input persistence via atom-backed state (TanStack Form removed from chat panel)
+
 ### Validated in Phase 04.1: Atom State Foundation + Sidebar Shell
 
 - ✓ effect-atom runtime with RegistryProvider replacing ManagedRuntime pattern — Atom.runtime(ClaudeCliFromRpc) with per-tab state via Atom.family
@@ -95,4 +103,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-27 after Phase 04.1 completion*
+*Last updated: 2026-03-28 after Phase 04.3 completion*
