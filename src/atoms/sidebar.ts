@@ -1,5 +1,6 @@
 import { Atom } from "@effect-atom/atom-react";
 import { Effect } from "effect";
+import { cwdAtom } from "@/atoms/chat";
 import { RendererRpcClient } from "@/services/claude-rpc/client";
 import type { Project } from "@/services/database/project-store/schemas";
 import type { Tab } from "@/services/database/tab-store/schemas";
@@ -58,6 +59,7 @@ export const loadProjectsAtom = appRuntime.fn((_: void, ctx: Atom.FnContext) =>
       const firstTab = projects[0]?.sessions[0];
       if (firstTab) {
         ctx.set(activeTabIdAtom, firstTab.id);
+        ctx.set(cwdAtom(String(firstTab.id)), firstTab.cwd);
       }
     }
   }).pipe(
@@ -72,6 +74,16 @@ export const setActiveTabAtom = appRuntime.fn(
     Effect.sync(() => {
       ctx.set(sessionLoadingAtom, true);
       ctx.set(activeTabIdAtom, tabId);
+
+      // Populate cwdAtom from projectsAtom for the activated tab
+      const projects = ctx(projectsAtom);
+      const tab = projects
+        .flatMap((p) => p.sessions)
+        .find((s) => s.id === tabId);
+      if (tab) {
+        ctx.set(cwdAtom(String(tabId)), tab.cwd);
+      }
+
       // Loading clears once the chat atom for this tab resolves
       ctx.set(sessionLoadingAtom, false);
     }),
@@ -153,6 +165,7 @@ export const registerProjectAtom = appRuntime.fn(
 
       // D-09: Auto-expand project and activate first session
       ctx.set(activeTabIdAtom, tab.id);
+      ctx.set(cwdAtom(String(tab.id)), directory);
     }).pipe(
       Effect.tapError((cause) =>
         Effect.logError("Project registration failed").pipe(
@@ -220,6 +233,7 @@ export const createSessionAtom = appRuntime.fn(
 
       // Activate new session
       ctx.set(activeTabIdAtom, tab.id);
+      ctx.set(cwdAtom(String(tab.id)), sessionCwd);
     }).pipe(
       Effect.tapError((cause) =>
         Effect.logError("Session creation failed").pipe(

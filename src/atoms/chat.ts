@@ -64,6 +64,11 @@ export const draftInputAtom = Atom.family((_tabId: string) =>
   Atom.make("").pipe(Atom.keepAlive),
 );
 
+// Per-tab working directory, populated by sidebar on tab activation
+export const cwdAtom = Atom.family((_tabId: string) =>
+  Atom.make("").pipe(Atom.keepAlive),
+);
+
 // Global concurrency counter — how many tabs are actively streaming
 export const activeStreamCountAtom = Atom.make(0).pipe(Atom.keepAlive);
 
@@ -122,15 +127,17 @@ export const sendMessageAtom = appRuntime.fn(
 
       const cli = yield* ClaudeCli;
       const currentSessionId = ctx(sessionIdAtom(tabId));
+      const cwd = ctx(cwdAtom(tabId));
 
       const stream = currentSessionId
         ? cli.resume(
             new ResumeParams({
               prompt,
               session_id: currentSessionId,
+              cwd: cwd || undefined,
             }),
           )
-        : cli.query(new QueryParams({ prompt }));
+        : cli.query(new QueryParams({ prompt, cwd: cwd || undefined }));
 
       yield* Stream.runForEach(stream, (event) =>
         Effect.sync(() => {
