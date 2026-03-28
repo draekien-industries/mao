@@ -16,7 +16,7 @@ export const makeSessionReconstructorLive = () =>
 
       const reconstruct = (sessionId: string) =>
         Effect.gen(function* () {
-          yield* Effect.logInfo("Reconstructing session");
+          yield* Effect.logDebug("Reconstructing session");
           const rows = yield* eventStore.getBySessionWithMeta(sessionId);
 
           let extractedSessionId = sessionId;

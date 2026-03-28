@@ -27,7 +27,7 @@ export const makeProjectStoreLive = () =>
 
       const create = (input: ProjectCreate) =>
         Effect.gen(function* () {
-          yield* Effect.logInfo("Creating project");
+          yield* Effect.logDebug("Creating project");
           const rows = yield* sql<ProjectRow>`
             INSERT INTO projects (name, directory, is_git_repo, worktree_base_path)
             VALUES (
@@ -99,7 +99,7 @@ export const makeProjectStoreLive = () =>
 
       const remove = (id: number) =>
         Effect.gen(function* () {
-          yield* Effect.logInfo("Removing project").pipe(
+          yield* Effect.logDebug("Removing project").pipe(
             Effect.annotateLogs("projectId", String(id)),
           );
           // Find all tabs belonging to this project

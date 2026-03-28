@@ -26,8 +26,8 @@ export const makeDialogServiceLive = () =>
         ),
         Effect.tap((opt) =>
           Option.isSome(opt)
-            ? Effect.logInfo("Directory selected")
-            : Effect.logInfo("Directory selection cancelled"),
+            ? Effect.logDebug("Directory selected")
+            : Effect.logDebug("Directory selection cancelled"),
         ),
         Effect.annotateLogs(annotations.operation, "openDirectory"),
         Effect.annotateLogs(annotations.service, "dialog"),

@@ -28,7 +28,7 @@ export const makeTabStoreLive = () =>
 
       const create = (input: TabCreate) =>
         Effect.gen(function* () {
-          yield* Effect.logInfo("Creating tab");
+          yield* Effect.logDebug("Creating tab");
           const rows = yield* sql<TabRow>`
             INSERT INTO tabs (session_id, cwd, git_branch, display_label, project_id)
             VALUES (
@@ -101,7 +101,7 @@ export const makeTabStoreLive = () =>
 
       const update = (id: number, input: TabUpdate) =>
         Effect.gen(function* () {
-          yield* Effect.logInfo("Updating tab").pipe(
+          yield* Effect.logDebug("Updating tab").pipe(
             Effect.annotateLogs("tabId", String(id)),
           );
           // Build SET clause dynamically from provided fields
@@ -141,7 +141,7 @@ export const makeTabStoreLive = () =>
       // D-04: Hard delete. D-05/D-09: Cascade to events within transaction.
       const deleteTab = (id: number) =>
         Effect.gen(function* () {
-          yield* Effect.logInfo("Deleting tab").pipe(
+          yield* Effect.logDebug("Deleting tab").pipe(
             Effect.annotateLogs("tabId", String(id)),
           );
           // Look up session_id for cascade
