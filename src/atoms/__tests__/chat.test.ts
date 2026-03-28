@@ -1,11 +1,15 @@
 import { Registry } from "@effect-atom/atom-react";
 import { describe, expect, it } from "vitest";
 import {
+  activeStreamCountAtom,
+  draftInputAtom,
   errorAtom,
   isStreamingAtom,
   messagesAtom,
   streamingTextAtom,
   tabStatusAtom,
+  toolInputAtom,
+  unreadAtom,
 } from "@/atoms/chat";
 
 describe("chat atoms", () => {
@@ -50,11 +54,45 @@ describe("chat atoms", () => {
       expect(status).toBe("error");
     });
 
-    it("streaming takes precedence over error", () => {
+    it("error takes precedence over streaming", () => {
       const registry = Registry.make();
       registry.set(isStreamingAtom("both-tab"), true);
       registry.set(errorAtom("both-tab"), "some error");
       const status = registry.get(tabStatusAtom("both-tab"));
+      expect(status).toBe("error");
+    });
+
+    it("returns 'error' when error set regardless of streaming/toolInput/unread", () => {
+      const registry = Registry.make();
+      registry.set(errorAtom("all-tab"), "bad");
+      registry.set(isStreamingAtom("all-tab"), true);
+      registry.set(toolInputAtom("all-tab"), true);
+      registry.set(unreadAtom("all-tab"), true);
+      const status = registry.get(tabStatusAtom("all-tab"));
+      expect(status).toBe("error");
+    });
+
+    it("returns 'tool-input' when toolInput true and no error", () => {
+      const registry = Registry.make();
+      registry.set(toolInputAtom("tool-tab"), true);
+      registry.set(isStreamingAtom("tool-tab"), true);
+      registry.set(unreadAtom("tool-tab"), true);
+      const status = registry.get(tabStatusAtom("tool-tab"));
+      expect(status).toBe("tool-input");
+    });
+
+    it("returns 'unread' when unread true and no error/toolInput", () => {
+      const registry = Registry.make();
+      registry.set(unreadAtom("unread-tab"), true);
+      registry.set(isStreamingAtom("unread-tab"), true);
+      const status = registry.get(tabStatusAtom("unread-tab"));
+      expect(status).toBe("unread");
+    });
+
+    it("returns 'streaming' when streaming true and no error/toolInput/unread", () => {
+      const registry = Registry.make();
+      registry.set(isStreamingAtom("stream-only"), true);
+      const status = registry.get(tabStatusAtom("stream-only"));
       expect(status).toBe("streaming");
     });
   });
@@ -82,6 +120,26 @@ describe("chat atoms", () => {
       const registry = Registry.make();
       const err = registry.get(errorAtom("fresh-tab"));
       expect(err).toBeNull();
+    });
+
+    it("unreadAtom defaults to false", () => {
+      const registry = Registry.make();
+      expect(registry.get(unreadAtom("tab-1"))).toBe(false);
+    });
+
+    it("toolInputAtom defaults to false", () => {
+      const registry = Registry.make();
+      expect(registry.get(toolInputAtom("tab-1"))).toBe(false);
+    });
+
+    it("draftInputAtom defaults to empty string", () => {
+      const registry = Registry.make();
+      expect(registry.get(draftInputAtom("tab-1"))).toBe("");
+    });
+
+    it("activeStreamCountAtom defaults to 0", () => {
+      const registry = Registry.make();
+      expect(registry.get(activeStreamCountAtom)).toBe(0);
     });
   });
 });

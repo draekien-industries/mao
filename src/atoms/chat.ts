@@ -1,5 +1,6 @@
 import { Atom } from "@effect-atom/atom-react";
 import { Effect, Stream } from "effect";
+import { activeTabIdAtom } from "@/atoms/sidebar";
 import { extractAssistantText } from "@/lib/extract-assistant-text";
 import { formatClaudeCliError } from "@/services/claude-cli/errors";
 import type { ClaudeEvent } from "@/services/claude-cli/events";
@@ -49,18 +50,43 @@ export const eventsAtom = Atom.family((_tabId: string) =>
   Atom.make<ReadonlyArray<ClaudeEvent>>([]).pipe(Atom.keepAlive),
 );
 
-// --- Derived status atom for sidebar indicators ---
-// D-05 corrected: Status derived from primitive writable atoms.
-// streaming > error > idle precedence.
+// --- New per-tab state atoms for multi-tab orchestration ---
 
-export type TabStatus = "streaming" | "error" | "idle";
+export const unreadAtom = Atom.family((_tabId: string) =>
+  Atom.make(false).pipe(Atom.keepAlive),
+);
+
+export const toolInputAtom = Atom.family((_tabId: string) =>
+  Atom.make(false).pipe(Atom.keepAlive),
+);
+
+export const draftInputAtom = Atom.family((_tabId: string) =>
+  Atom.make("").pipe(Atom.keepAlive),
+);
+
+// Global concurrency counter — how many tabs are actively streaming
+export const activeStreamCountAtom = Atom.make(0).pipe(Atom.keepAlive);
+
+// --- Derived status atom for sidebar indicators ---
+// D-05: Priority order error > tool-input > unread > streaming > idle
+
+export type TabStatus =
+  | "streaming"
+  | "unread"
+  | "error"
+  | "tool-input"
+  | "idle";
 
 export const tabStatusAtom = Atom.family((tabId: string) =>
   Atom.make((get) => {
-    const streaming = get(isStreamingAtom(tabId));
     const err = get(errorAtom(tabId));
-    if (streaming) return "streaming" as const;
+    const toolInput = get(toolInputAtom(tabId));
+    const unread = get(unreadAtom(tabId));
+    const streaming = get(isStreamingAtom(tabId));
     if (err !== null) return "error" as const;
+    if (toolInput) return "tool-input" as const;
+    if (unread) return "unread" as const;
+    if (streaming) return "streaming" as const;
     return "idle" as const;
   }),
 );
@@ -80,7 +106,7 @@ export const sendMessageAtom = appRuntime.fn(
         Effect.annotateLogs(annotations.tabId, tabId),
       );
 
-      // Add user message
+      // Add user message and clear previous state (D-09: error cleared on new send)
       const prevMessages = ctx(messagesAtom(tabId));
       ctx.set(messagesAtom(tabId), [
         ...prevMessages,
@@ -88,7 +114,11 @@ export const sendMessageAtom = appRuntime.fn(
       ]);
       ctx.set(streamingTextAtom(tabId), "");
       ctx.set(errorAtom(tabId), null);
+      ctx.set(toolInputAtom(tabId), false);
       ctx.set(isStreamingAtom(tabId), true);
+
+      // D-10, D-12: Track concurrent stream count
+      ctx.set(activeStreamCountAtom, ctx(activeStreamCountAtom) + 1);
 
       const cli = yield* ClaudeCli;
       const currentSessionId = ctx(sessionIdAtom(tabId));
@@ -109,6 +139,8 @@ export const sendMessageAtom = appRuntime.fn(
 
           if (isSystemInit(event)) {
             ctx.set(sessionIdAtom(tabId), event.session_id);
+            // Clear tool-input when new stream starts after tool approval
+            ctx.set(toolInputAtom(tabId), false);
           } else if (isStreamEvent(event)) {
             if (
               isContentBlockDelta(event.event) &&
@@ -119,6 +151,15 @@ export const sendMessageAtom = appRuntime.fn(
               ctx.set(streamingTextAtom(tabId), prev + chunk);
             }
           } else if (isAssistantMessage(event)) {
+            // D-03: Tool-input detection
+            const hasToolUse = event.message.content.some(
+              (block) => block.type === "tool_use",
+            );
+            if (hasToolUse) {
+              ctx.set(toolInputAtom(tabId), true);
+            }
+
+            // Existing: extract text, update messages, clear streaming text
             const text = extractAssistantText(event);
             const prev = ctx(messagesAtom(tabId));
             ctx.set(messagesAtom(tabId), [
@@ -126,10 +167,27 @@ export const sendMessageAtom = appRuntime.fn(
               { role: "assistant" as const, content: text },
             ]);
             ctx.set(streamingTextAtom(tabId), "");
+
+            // D-07: Mark tab unread when message arrives on non-active tab
+            const activeTab = ctx(activeTabIdAtom);
+            if (String(activeTab) !== tabId) {
+              ctx.set(unreadAtom(tabId), true);
+            }
           } else if (isResult(event)) {
             ctx.set(isStreamingAtom(tabId), false);
+            ctx.set(toolInputAtom(tabId), false);
           }
         }),
+      ).pipe(
+        // D-10: Guarantee stream count decrement on completion or error
+        Effect.ensuring(
+          Effect.sync(() => {
+            ctx.set(
+              activeStreamCountAtom,
+              Math.max(0, ctx(activeStreamCountAtom) - 1),
+            );
+          }),
+        ),
       );
     }).pipe(
       Effect.catchAll((err) =>
