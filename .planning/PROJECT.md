@@ -85,6 +85,10 @@ Users can close the app and resume exactly where they left off — every tab, ev
 | SQLite via better-sqlite3 | Synchronous API fits Electron main process; no native module compilation issues with Electron Forge | — Pending |
 | Store only complete events | Saves space, avoids orphaned partial data, simplifies reconstruction logic | — Pending |
 
+## Current State
+
+Phase 04.3 complete (2026-03-28) — multi-tab orchestration with background streaming, including unread indicator gap closure. Next: Phase 04.4 (refine logging approach) or Phase 05 (renderer integration).
+
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
