@@ -16,7 +16,12 @@ import { makeProjectStoreLive } from "./services/database/project-store/service"
 import { makeDatabaseLive } from "./services/database/service";
 import { makeSessionReconstructorLive } from "./services/database/session-reconstructor/service";
 import { makeTabStoreLive } from "./services/database/tab-store/service";
-import { DevLogger, ProdLogger } from "./services/diagnostics";
+import {
+  DevLogger,
+  devLog,
+  makeProdFileLogger,
+  ProdLogger,
+} from "./services/diagnostics";
 import { makeDialogServiceLive } from "./services/dialog/service";
 import { DialogRpcHandlers } from "./services/dialog-rpc/handlers";
 import { makeGitServiceLive } from "./services/git/service";
@@ -27,13 +32,11 @@ if (started) {
   app.quit();
 }
 
-const devLog = (msg: string) => {
-  if (!app.isPackaged) console.log(`[mao:lifecycle] ${msg}`);
-};
-
 const dbPath = path.join(app.getPath("userData"), "mao.db");
 mkdirSync(path.dirname(dbPath), { recursive: true });
-devLog(`database path: ${dbPath}`);
+devLog(`database path: ${dbPath}`, app.isPackaged);
+
+const logFilePath = path.join(app.getPath("logs"), "mao-errors.log");
 
 const SqliteLive = SqliteClient.layer({ filename: dbPath });
 const DatabaseLayer = makeDatabaseLive();
@@ -62,14 +65,16 @@ const BaseLayer = ClaudeRpcHandlers.pipe(
   Layer.provideMerge(NodeContext.layer),
 );
 
-const ServerLayer = BaseLayer.pipe(
-  Layer.provide(app.isPackaged ? ProdLogger : DevLogger),
-);
+const LoggerLayer = app.isPackaged
+  ? Layer.merge(ProdLogger, makeProdFileLogger(logFilePath))
+  : DevLogger;
+
+const ServerLayer = BaseLayer.pipe(Layer.provide(LoggerLayer));
 
 const runtime = ManagedRuntime.make(ServerLayer);
 
 const createWindow = () => {
-  devLog("creating window");
+  devLog("creating window", app.isPackaged);
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
@@ -94,7 +99,7 @@ const createWindow = () => {
 };
 
 app.on("ready", () => {
-  devLog("app ready");
+  devLog("app ready", app.isPackaged);
   createWindow();
   runtime.runFork(startRpcServer.pipe(Effect.scoped));
 });
@@ -116,11 +121,11 @@ app.on("before-quit", async (e) => {
   if (isQuitting) return;
   isQuitting = true;
   e.preventDefault();
-  devLog("disposing runtime");
+  devLog("disposing runtime", app.isPackaged);
   try {
     await runtime.dispose();
   } finally {
-    devLog("runtime disposed, exiting");
+    devLog("runtime disposed, exiting", app.isPackaged);
     app.exit(0);
   }
 });
