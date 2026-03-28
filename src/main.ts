@@ -16,12 +16,8 @@ import { makeProjectStoreLive } from "./services/database/project-store/service"
 import { makeDatabaseLive } from "./services/database/service";
 import { makeSessionReconstructorLive } from "./services/database/session-reconstructor/service";
 import { makeTabStoreLive } from "./services/database/tab-store/service";
-import {
-  DevLogger,
-  devLog,
-  makeProdFileLogger,
-  ProdLogger,
-} from "./services/diagnostics";
+import { DevLogger, devLog, ProdLogger } from "./services/diagnostics";
+import { makeProdFileLogger } from "./services/diagnostics-file-logger";
 import { makeDialogServiceLive } from "./services/dialog/service";
 import { DialogRpcHandlers } from "./services/dialog-rpc/handlers";
 import { makeGitServiceLive } from "./services/git/service";

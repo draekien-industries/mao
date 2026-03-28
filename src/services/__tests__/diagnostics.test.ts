@@ -3,7 +3,8 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { Effect } from "effect";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { devLog, makeProdFileLogger } from "../diagnostics";
+import { devLog } from "../diagnostics";
+import { makeProdFileLogger } from "../diagnostics-file-logger";
 
 describe("makeProdFileLogger", () => {
   let tempDir: string;
