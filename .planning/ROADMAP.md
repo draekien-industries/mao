@@ -117,13 +117,13 @@ Plans:
 **Goal:** Multiple concurrent CLI streams running in background across tabs, tab switching without losing state, status indicators (streaming/unread/error/tool-input), smart scroll with per-tab position preservation, soft concurrency limit with warning banner.
 **Requirements**: D-01 through D-16 (from 04.3-CONTEXT.md)
 **Depends on:** Phase 04.2
-**Plans:** 4 plans (3 complete + 1 gap closure)
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 04.3-01-PLAN.md -- New atoms (unread, toolInput, draftInput, scroll), 5-state TabStatus, sendMessageAtom concurrency/unread/tool-input tracking, CSS tokens
 - [x] 04.3-02-PLAN.md -- Smart scroll behavior, draft input, tab switch scroll preservation in chat panel
 - [x] 04.3-03-PLAN.md -- SessionStatusIndicator tool-input extension, ConcurrencyWarningBanner, sidebar wiring
-- [ ] 04.3-04-PLAN.md -- Gap closure: fix unread indicator (null tabKey guard + clear unread on tab switch)
+- [x] 04.3-04-PLAN.md -- Gap closure: fix unread indicator (null tabKey guard + clear unread on tab switch)
 
 ### Phase 5: Renderer Integration
 **Goal**: Users experience seamless app restart — tabs restore, conversations appear, and quitting the app never loses data
