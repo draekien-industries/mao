@@ -1,5 +1,6 @@
 import { Atom } from "@effect-atom/atom-react";
 import { Effect, Stream } from "effect";
+import { activeTabIdAtom } from "@/atoms/sidebar";
 import { extractAssistantText } from "@/lib/extract-assistant-text";
 import { formatClaudeCliError } from "@/services/claude-cli/errors";
 import type { ClaudeEvent } from "@/services/claude-cli/events";
@@ -101,7 +102,7 @@ export const sendMessageAtom = appRuntime.fn(
     Effect.gen(function* () {
       const { tabId, prompt } = params;
 
-      // Add user message
+      // Add user message and clear previous state (D-09: error cleared on new send)
       const prevMessages = ctx(messagesAtom(tabId));
       ctx.set(messagesAtom(tabId), [
         ...prevMessages,
@@ -109,7 +110,11 @@ export const sendMessageAtom = appRuntime.fn(
       ]);
       ctx.set(streamingTextAtom(tabId), "");
       ctx.set(errorAtom(tabId), null);
+      ctx.set(toolInputAtom(tabId), false);
       ctx.set(isStreamingAtom(tabId), true);
+
+      // D-10, D-12: Track concurrent stream count
+      ctx.set(activeStreamCountAtom, ctx(activeStreamCountAtom) + 1);
 
       const cli = yield* ClaudeCli;
       const currentSessionId = ctx(sessionIdAtom(tabId));
@@ -130,6 +135,8 @@ export const sendMessageAtom = appRuntime.fn(
 
           if (isSystemInit(event)) {
             ctx.set(sessionIdAtom(tabId), event.session_id);
+            // Clear tool-input when new stream starts after tool approval
+            ctx.set(toolInputAtom(tabId), false);
           } else if (isStreamEvent(event)) {
             if (
               isContentBlockDelta(event.event) &&
@@ -140,6 +147,15 @@ export const sendMessageAtom = appRuntime.fn(
               ctx.set(streamingTextAtom(tabId), prev + chunk);
             }
           } else if (isAssistantMessage(event)) {
+            // D-03: Tool-input detection
+            const hasToolUse = event.message.content.some(
+              (block) => block.type === "tool_use",
+            );
+            if (hasToolUse) {
+              ctx.set(toolInputAtom(tabId), true);
+            }
+
+            // Existing: extract text, update messages, clear streaming text
             const text = extractAssistantText(event);
             const prev = ctx(messagesAtom(tabId));
             ctx.set(messagesAtom(tabId), [
@@ -147,10 +163,27 @@ export const sendMessageAtom = appRuntime.fn(
               { role: "assistant" as const, content: text },
             ]);
             ctx.set(streamingTextAtom(tabId), "");
+
+            // D-07: Mark tab unread when message arrives on non-active tab
+            const activeTab = ctx(activeTabIdAtom);
+            if (String(activeTab) !== tabId) {
+              ctx.set(unreadAtom(tabId), true);
+            }
           } else if (isResult(event)) {
             ctx.set(isStreamingAtom(tabId), false);
+            ctx.set(toolInputAtom(tabId), false);
           }
         }),
+      ).pipe(
+        // D-10: Guarantee stream count decrement on completion or error
+        Effect.ensuring(
+          Effect.sync(() => {
+            ctx.set(
+              activeStreamCountAtom,
+              Math.max(0, ctx(activeStreamCountAtom) - 1),
+            );
+          }),
+        ),
       );
     }).pipe(
       Effect.catchAll((err) =>
