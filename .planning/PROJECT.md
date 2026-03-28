@@ -87,7 +87,7 @@ Users can close the app and resume exactly where they left off — every tab, ev
 
 ## Current State
 
-Phase 04.4 complete (2026-03-28) — production file logging, devLog consolidation, and log level granularity (Debug/Info/Error convention). Next: Phase 05 (renderer integration).
+Phase 04.5 complete (2026-03-28) — per-tab working directory threaded through to CLI process spawn via cwdAtom family, fixing multi-project directory mismatch. Next: Phase 05 (renderer integration).
 
 ## Evolution
 
@@ -107,4 +107,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-28 after Phase 04.4 completion*
+*Last updated: 2026-03-28 after Phase 04.5 completion*
