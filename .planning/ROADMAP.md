@@ -117,11 +117,11 @@ Plans:
 **Goal:** Multiple concurrent CLI streams running in background across tabs, tab switching without losing state, status indicators (streaming/unread/error/tool-input), smart scroll with per-tab position preservation, soft concurrency limit with warning banner.
 **Requirements**: D-01 through D-16 (from 04.3-CONTEXT.md)
 **Depends on:** Phase 04.2
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 04.3-01-PLAN.md -- New atoms (unread, toolInput, draftInput, scroll), 5-state TabStatus, sendMessageAtom concurrency/unread/tool-input tracking, CSS tokens
-- [ ] 04.3-02-PLAN.md -- Smart scroll behavior, draft input, tab switch scroll preservation in chat panel
+- [x] 04.3-02-PLAN.md -- Smart scroll behavior, draft input, tab switch scroll preservation in chat panel
 - [x] 04.3-03-PLAN.md -- SessionStatusIndicator tool-input extension, ConcurrencyWarningBanner, sidebar wiring
 
 ### Phase 5: Renderer Integration

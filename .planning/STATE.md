@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Phase complete — ready for verification
-stopped_at: Completed 04.3-03-PLAN.md
-last_updated: "2026-03-28T00:27:23.288Z"
+stopped_at: Completed 04.3-02-PLAN.md
+last_updated: "2026-03-28T00:33:13.881Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 9
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 21
-  completed_plans: 19
+  completed_plans: 20
 ---
 
 # Project State
@@ -59,6 +59,7 @@ Plan: 5 of 05 complete
 | Phase 04.2 P04 | 9min | 2 tasks | 14 files |
 | Phase 04.3 P01 | 4min | 2 tasks | 5 files |
 | Phase 04.3 P03 | 4min | 2 tasks | 3 files |
+| Phase 04.3 P02 | 2min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,8 @@ Recent decisions affecting current work:
 - [Phase 04.3]: Used Effect.ensuring for guaranteed activeStreamCount decrement
 - [Phase 04.3]: Reversed tabStatusAtom priority from streaming-first to error-first per D-05
 - [Phase 04.3]: Used Alert01Icon from hugeicons for concurrency warning banner
+- [Phase 04.3]: Removed TanStack Form from chat panel in favor of atom-backed draft input for per-tab persistence
+- [Phase 04.3]: Used requestAnimationFrame-throttled passive scroll listener with 32px threshold for smart auto-scroll
 
 ### Pending Todos
 
@@ -113,5 +116,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last activity: 2026-03-28
-Stopped at: Completed 04.3-03-PLAN.md
+Stopped at: Completed 04.3-02-PLAN.md
 Resume file: None
