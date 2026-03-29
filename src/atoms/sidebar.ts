@@ -1,6 +1,6 @@
 import { Atom } from "@effect-atom/atom-react";
 import { Effect } from "effect";
-import { cwdAtom } from "@/atoms/chat";
+import { cwdAtom, messagesAtom, sessionIdAtom, unreadAtom } from "@/atoms/chat";
 import { RendererRpcClient } from "@/services/claude-rpc/client";
 import type { Project } from "@/services/database/project-store/schemas";
 import type { Tab } from "@/services/database/tab-store/schemas";
@@ -51,7 +51,7 @@ const loadProjectsEffect = (ctx: Atom.FnContext) =>
 // If no tab is active, default to the first available tab.
 export const loadProjectsAtom = appRuntime.fn((_: void, ctx: Atom.FnContext) =>
   Effect.gen(function* () {
-    yield* Effect.logDebug("Loading projects");
+    yield* Effect.logInfo("Loading projects");
     yield* loadProjectsEffect(ctx);
     const activeId = ctx(activeTabIdAtom);
     if (activeId === null) {
@@ -60,6 +60,32 @@ export const loadProjectsAtom = appRuntime.fn((_: void, ctx: Atom.FnContext) =>
       if (firstTab) {
         ctx.set(activeTabIdAtom, firstTab.id);
         ctx.set(cwdAtom(String(firstTab.id)), firstTab.cwd);
+
+        // D-01: Hydrate active tab conversation on app start
+        if (firstTab.session_id !== null) {
+          ctx.set(sessionLoadingAtom, true);
+          const client = yield* RendererRpcClient;
+          yield* Effect.logDebug("Hydrating first tab session").pipe(
+            Effect.annotateLogs(annotations.tabId, String(firstTab.id)),
+            Effect.annotateLogs(annotations.sessionId, firstTab.session_id),
+          );
+          const session = yield* client.reconstructSession({
+            sessionId: firstTab.session_id,
+          });
+          const tabKey = String(firstTab.id);
+          // Pitfall 4: Set messages FIRST, then clear loading state
+          ctx.set(
+            messagesAtom(tabKey),
+            session.messages.map((m) => ({
+              content: m.content,
+              role: m.role,
+              ...(m.toolUseId !== undefined ? { toolUseId: m.toolUseId } : {}),
+              ...(m.isError !== undefined ? { isError: m.isError } : {}),
+            })),
+          );
+          ctx.set(sessionIdAtom(tabKey), session.sessionId);
+          ctx.set(sessionLoadingAtom, false);
+        }
       }
     }
   }).pipe(
@@ -68,10 +94,10 @@ export const loadProjectsAtom = appRuntime.fn((_: void, ctx: Atom.FnContext) =>
   ),
 );
 
-// Switch to a different tab with skeleton loading transition
+// Switch to a different tab with lazy hydration (D-01)
 export const setActiveTabAtom = appRuntime.fn(
   (tabId: number, ctx: Atom.FnContext) =>
-    Effect.sync(() => {
+    Effect.gen(function* () {
       ctx.set(sessionLoadingAtom, true);
       ctx.set(activeTabIdAtom, tabId);
 
@@ -84,9 +110,55 @@ export const setActiveTabAtom = appRuntime.fn(
         ctx.set(cwdAtom(String(tabId)), tab.cwd);
       }
 
-      // Loading clears once the chat atom for this tab resolves
+      // D-01: Lazy hydration -- only if tab has a session and messages not yet loaded
+      const tabKey = String(tabId);
+      const existingMessages = ctx(messagesAtom(tabKey));
+      if (
+        tab?.session_id !== null &&
+        tab?.session_id !== undefined &&
+        existingMessages.length === 0
+      ) {
+        const client = yield* RendererRpcClient;
+        yield* Effect.logDebug("Lazy-hydrating tab session").pipe(
+          Effect.annotateLogs(annotations.tabId, String(tabId)),
+          Effect.annotateLogs(annotations.sessionId, tab.session_id),
+        );
+        const session = yield* client.reconstructSession({
+          sessionId: tab.session_id,
+        });
+        // Pitfall 2: Always write to specific tabKey, never read activeTabIdAtom
+        ctx.set(
+          messagesAtom(tabKey),
+          session.messages.map((m) => ({
+            content: m.content,
+            role: m.role,
+            ...(m.toolUseId !== undefined ? { toolUseId: m.toolUseId } : {}),
+            ...(m.isError !== undefined ? { isError: m.isError } : {}),
+          })),
+        );
+        ctx.set(sessionIdAtom(tabKey), session.sessionId);
+      }
+
+      // Clear unread when switching to this tab
+      ctx.set(unreadAtom(tabKey), false);
+
+      // Pitfall 4: Set messages before clearing loading
       ctx.set(sessionLoadingAtom, false);
-    }),
+    }).pipe(
+      Effect.tapError((cause) =>
+        Effect.logError("Tab switch hydration failed").pipe(
+          Effect.annotateLogs("error", String(cause)),
+          Effect.annotateLogs(annotations.tabId, String(tabId)),
+        ),
+      ),
+      Effect.catchAll(() =>
+        Effect.sync(() => {
+          ctx.set(sessionLoadingAtom, false);
+        }),
+      ),
+      Effect.annotateLogs(annotations.service, "sidebar"),
+      Effect.annotateLogs(annotations.operation, "setActiveTab"),
+    ),
 );
 
 // Available branches for the branch autocomplete, populated by loadBranchesAtom
@@ -108,7 +180,7 @@ export const loadBranchesAtom = appRuntime.fn(
 export const registerProjectAtom = appRuntime.fn(
   (_: void, ctx: Atom.FnContext) =>
     Effect.gen(function* () {
-      yield* Effect.logDebug("Registering project");
+      yield* Effect.logInfo("Registering project");
       const client = yield* RendererRpcClient;
 
       // D-16: Open native directory picker
@@ -191,7 +263,7 @@ export const createSessionAtom = appRuntime.fn(
     ctx: Atom.FnContext,
   ) =>
     Effect.gen(function* () {
-      yield* Effect.logDebug("Creating session");
+      yield* Effect.logInfo("Creating session");
       const client = yield* RendererRpcClient;
 
       let sessionCwd = params.cwd;
@@ -249,7 +321,7 @@ export const createSessionAtom = appRuntime.fn(
 export const removeProjectAtom = appRuntime.fn(
   (projectId: number, ctx: Atom.FnContext) =>
     Effect.gen(function* () {
-      yield* Effect.logDebug("Removing project").pipe(
+      yield* Effect.logInfo("Removing project").pipe(
         Effect.annotateLogs("projectId", String(projectId)),
       );
       const client = yield* RendererRpcClient;

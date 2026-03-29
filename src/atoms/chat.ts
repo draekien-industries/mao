@@ -21,7 +21,9 @@ import { appRuntime } from "./runtime";
 
 export interface ChatMessage {
   readonly content: string;
-  readonly role: "user" | "assistant";
+  readonly isError?: boolean;
+  readonly role: "user" | "assistant" | "tool_result";
+  readonly toolUseId?: string;
 }
 
 // --- Writable state atoms per tab (D-03: Atom.family keyed by tab ID) ---
