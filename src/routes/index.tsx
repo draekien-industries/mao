@@ -14,8 +14,10 @@ import {
   unreadAtom,
 } from "@/atoms/chat";
 import { autoScrollAtom, scrollPositionAtom } from "@/atoms/scroll";
-import { activeTabIdAtom } from "@/atoms/sidebar";
+import { activeTabIdAtom, sessionLoadingAtom } from "@/atoms/sidebar";
 import { DebugEventPanel } from "@/components/debug-event-panel";
+import { MessageSkeleton } from "@/components/message-skeleton";
+import { ToolResultBlock } from "@/components/tool-result-block";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -55,6 +57,7 @@ function ChatPanel({ tabKey }: { readonly tabKey: string }) {
   const isStreaming = useAtomValue(isStreamingAtom(tabKey));
   const error = useAtomValue(errorAtom(tabKey));
   const events = useAtomValue(eventsAtom(tabKey));
+  const sessionLoading = useAtomValue(sessionLoadingAtom);
   const sendMessage = useAtomSet(sendMessageAtom);
   const { debugOpen } = useDebugPanel();
 
@@ -127,40 +130,54 @@ function ChatPanel({ tabKey }: { readonly tabKey: string }) {
           className="flex-1 space-y-3 overflow-y-auto p-4"
           ref={scrollContainerRef}
         >
-          {messages.length === 0 && !streamingText && (
-            <p className="py-16 text-center text-sm text-muted-foreground">
-              Send a message to start chatting.
-            </p>
-          )}
-
-          {messages.map((msg, i) => (
-            <div
-              className={cn(
-                "flex",
-                msg.role === "user" ? "justify-end" : "justify-start",
+          {sessionLoading ? (
+            <MessageSkeleton />
+          ) : (
+            <>
+              {messages.length === 0 && !streamingText && (
+                <p className="py-16 text-center text-sm text-muted-foreground">
+                  Send a message to start chatting.
+                </p>
               )}
-              key={i}
-            >
-              <div
-                className={cn(
-                  "max-w-[80%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-sm",
-                  msg.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted",
-                )}
-              >
-                {msg.content}
-              </div>
-            </div>
-          ))}
 
-          {streamingText && (
-            <div className="flex justify-start">
-              <div className="max-w-[80%] whitespace-pre-wrap rounded-2xl bg-muted px-3.5 py-2 text-sm">
-                {streamingText}
-                <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-foreground" />
-              </div>
-            </div>
+              {messages.map((msg, i) =>
+                msg.role === "tool_result" ? (
+                  <ToolResultBlock
+                    content={msg.content}
+                    isError={msg.isError === true}
+                    key={i}
+                  />
+                ) : (
+                  <div
+                    className={cn(
+                      "flex",
+                      msg.role === "user" ? "justify-end" : "justify-start",
+                    )}
+                    key={i}
+                  >
+                    <div
+                      className={cn(
+                        "max-w-[80%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-sm",
+                        msg.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted",
+                      )}
+                    >
+                      {msg.content}
+                    </div>
+                  </div>
+                ),
+              )}
+
+              {streamingText && (
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] whitespace-pre-wrap rounded-2xl bg-muted px-3.5 py-2 text-sm">
+                    {streamingText}
+                    <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-foreground" />
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
