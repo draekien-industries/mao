@@ -2,6 +2,7 @@ import { useAtomSet, useAtomValue } from "@effect-atom/atom-react";
 import { useEffect, useState } from "react";
 import {
   branchesAtom,
+  checkWorktreeExistsAtom,
   createSessionAtom,
   loadBranchesAtom,
 } from "@/atoms/sidebar";
@@ -46,6 +47,10 @@ function CreateSessionDialog({
   const [branchName, setBranchName] = useState("");
   const [useWorktree, setUseWorktree] = useState(true); // D-11: checked by default
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [worktreeCheck, setWorktreeCheck] = useState<{
+    exists: true;
+    path: string;
+  } | null>(null);
 
   // Read branches from shared atom populated by loadBranchesAtom
   const branches = useAtomValue(branchesAtom);
@@ -53,6 +58,9 @@ function CreateSessionDialog({
   // Get dispatch functions via useAtomSet (same pattern as sendMessageAtom)
   const createSession = useAtomSet(createSessionAtom);
   const loadBranches = useAtomSet(loadBranchesAtom);
+  const checkWorktreeExists = useAtomSet(checkWorktreeExistsAtom, {
+    mode: "promise",
+  });
 
   // Load branches when dialog opens (only for git repos)
   useEffect(() => {
@@ -64,8 +72,34 @@ function CreateSessionDialog({
       setBranchName("");
       setUseWorktree(true);
       setIsSubmitting(false);
+      setWorktreeCheck(null);
     }
   }, [open, isGitRepo, cwd, loadBranches]);
+
+  // D-12: Debounced worktree existence check
+  useEffect(() => {
+    if (!(open && isGitRepo && useWorktree && branchName.length > 0)) {
+      setWorktreeCheck(null);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      checkWorktreeExists({ cwd, branchName }).then(
+        (result) => {
+          if (result.exists && result.path !== null) {
+            setWorktreeCheck({ exists: true, path: result.path });
+          } else {
+            setWorktreeCheck(null);
+          }
+        },
+        () => {
+          setWorktreeCheck(null);
+        },
+      );
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [branchName, useWorktree, open, isGitRepo, cwd, checkWorktreeExists]);
 
   const handleCreate = () => {
     setIsSubmitting(true);
@@ -127,6 +161,12 @@ function CreateSessionDialog({
                   {worktreeBasePath ?? ".worktrees"}/{branchName}
                 </FieldDescription>
               )}
+              {worktreeCheck?.exists && (
+                <FieldDescription className="text-amber-600 dark:text-amber-400">
+                  A worktree for &apos;{branchName}&apos; already exists at{" "}
+                  {worktreeCheck.path}. It will be reused.
+                </FieldDescription>
+              )}
             </Field>
           )}
         </FieldGroup>
@@ -139,7 +179,11 @@ function CreateSessionDialog({
             onClick={handleCreate}
           >
             {isSubmitting && <Spinner data-icon="inline-start" />}
-            {isSubmitting ? "Creating..." : "Create Session"}
+            {isSubmitting
+              ? "Creating..."
+              : worktreeCheck?.exists
+                ? "Use Existing Worktree"
+                : "Create Session"}
           </Button>
         </DialogFooter>
       </DialogContent>
