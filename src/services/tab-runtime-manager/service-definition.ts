@@ -1,8 +1,8 @@
 import { Context, Effect } from "effect";
 
 export interface TabRuntime {
-  readonly tabId: number;
   readonly dispose: () => Promise<void>;
+  readonly tabId: number;
 }
 
 export class TabRuntimeManager extends Context.Tag("TabRuntimeManager")<

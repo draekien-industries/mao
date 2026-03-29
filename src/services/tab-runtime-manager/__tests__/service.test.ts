@@ -3,9 +3,7 @@ import { describe, expect, it } from "vitest";
 import { makeTabRuntimeManagerLive } from "../service";
 import { TabRuntimeManager } from "../service-definition";
 
-const runTest = <A, E>(
-  effect: Effect.Effect<A, E, TabRuntimeManager>,
-) =>
+const runTest = <A, E>(effect: Effect.Effect<A, E, TabRuntimeManager>) =>
   Effect.runPromise(effect.pipe(Effect.provide(makeTabRuntimeManagerLive())));
 
 describe("TabRuntimeManager", () => {
