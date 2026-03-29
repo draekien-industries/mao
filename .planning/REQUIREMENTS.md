@@ -16,10 +16,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Event Storage
 
-- [ ] **EVNT-01**: Each complete CLI event stored as an immutable row with session_id, sequence_number, event_type, event_data, and created_at
-- [ ] **EVNT-02**: User messages stored as synthetic user_message events for full conversation reconstruction
+- [x] **EVNT-01**: Each complete CLI event stored as an immutable row with session_id, sequence_number, event_type, event_data, and created_at
+- [x] **EVNT-02**: User messages stored as synthetic user_message events for full conversation reconstruction
 - [x] **EVNT-03**: Events partitioned by session_id for multi-tab independence
-- [ ] **EVNT-04**: Sequence numbers maintain strict event ordering within each session
+- [x] **EVNT-04**: Sequence numbers maintain strict event ordering within each session
 
 ### Write Pipeline
 
@@ -31,7 +31,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Tab Management
 
 - [x] **TAB-01**: Tab metadata stored: repository/cwd, git branch/worktree, Claude session ID, tab order, display label
-- [ ] **TAB-02**: Active tab indicator persisted so the correct tab is focused on reopen
+- [x] **TAB-02**: Active tab indicator persisted so the correct tab is focused on reopen
 - [x] **TAB-03**: Full tab layout restored on app reopen with all tabs pointing to correct projects
 
 ### Session Reconstruction
@@ -49,13 +49,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **PROJ-01**: Project table in SQLite with id, name, directory, is_git_repo, worktree_base_path; tabs reference project_id via foreign key (D-07)
 - [x] **PROJ-02**: ProjectStore service provides create, getAll, getById, remove with cascade delete of tabs and events (D-06, D-20)
-- [ ] **GIT-01**: GitService wraps git CLI via CommandExecutor for listBranches, getCurrentBranch, getRepoName, isGitRepo, listWorktrees, createWorktree, removeWorktree (D-21)
-- [ ] **GIT-02**: Git worktree creation uses `git worktree add` with branch-exists detection; existing worktrees offered for reuse (D-11, D-12)
-- [ ] **DIAL-01**: DialogService wraps Electron's native dialog.showOpenDialog for directory selection (D-22)
-- [ ] **RPC-01**: GitRpcGroup exposes all git operations to the renderer via typed RPC (D-21)
-- [ ] **RPC-02**: DialogRpcGroup exposes native directory picker to the renderer via typed RPC (D-22)
-- [ ] **RPC-03**: PersistenceRpcGroup extended with createProject, listProjects, removeProject, createTab for project CRUD (D-23)
-- [ ] **RPC-04**: All four RPC groups (Claude, Persistence, Git, Dialog) merged via RpcGroup.merge and wired into server/client/main.ts (D-24)
+- [x] **GIT-01**: GitService wraps git CLI via CommandExecutor for listBranches, getCurrentBranch, getRepoName, isGitRepo, listWorktrees, createWorktree, removeWorktree (D-21)
+- [x] **GIT-02**: Git worktree creation uses `git worktree add` with branch-exists detection; existing worktrees offered for reuse (D-11, D-12)
+- [x] **DIAL-01**: DialogService wraps Electron's native dialog.showOpenDialog for directory selection (D-22)
+- [x] **RPC-01**: GitRpcGroup exposes all git operations to the renderer via typed RPC (D-21)
+- [x] **RPC-02**: DialogRpcGroup exposes native directory picker to the renderer via typed RPC (D-22)
+- [x] **RPC-03**: PersistenceRpcGroup extended with createProject, listProjects, removeProject, createTab for project CRUD (D-23)
+- [x] **RPC-04**: All four RPC groups (Claude, Persistence, Git, Dialog) merged via RpcGroup.merge and wired into server/client/main.ts (D-24)
 - [x] **ATOM-04**: Sidebar atoms replace mock data with real project/session state loaded from DB via RPC on app start (D-06, D-08)
 - [x] **ATOM-05**: RendererRpcClient Context.Tag provides full typed RPC client to renderer atoms for calling persistence, git, and dialog operations
 - [ ] **UI-01**: Session creation dialog with branch autocomplete (Command component) and "Create worktree" checkbox (D-01, D-05, D-10, D-11)
@@ -99,16 +99,16 @@ Deferred to future release. Tracked but not in current roadmap.
 | INFRA-02 | Phase 1 | Complete |
 | INFRA-03 | Phase 1 | Complete |
 | INFRA-04 | Phase 1 | Complete |
-| EVNT-01 | Phase 2 | Pending |
-| EVNT-02 | Phase 2 | Pending |
+| EVNT-01 | Phase 2 | Complete |
+| EVNT-02 | Phase 2 | Complete |
 | EVNT-03 | Phase 2 | Complete |
-| EVNT-04 | Phase 2 | Pending |
+| EVNT-04 | Phase 2 | Complete |
 | WPIPE-01 | Phase 3 | Complete |
 | WPIPE-02 | Phase 3 | Complete |
 | WPIPE-03 | Phase 3 | Complete |
 | WPIPE-04 | Phase 3 | Complete |
 | TAB-01 | Phase 2 | Complete |
-| TAB-02 | Phase 5 | Pending |
+| TAB-02 | Phase 5 | Complete |
 | TAB-03 | Phase 5 | Complete |
 | RECON-01 | Phase 4 | Complete |
 | RECON-02 | Phase 4 | Complete |
@@ -117,18 +117,18 @@ Deferred to future release. Tracked but not in current roadmap.
 | SAFE-02 | Phase 1 | Complete |
 | PROJ-01 | Phase 04.2 | Complete |
 | PROJ-02 | Phase 04.2 | Complete |
-| GIT-01 | Phase 04.2 | Pending |
-| GIT-02 | Phase 04.2 | Pending |
-| DIAL-01 | Phase 04.2 | Pending |
-| RPC-01 | Phase 04.2 | Pending |
-| RPC-02 | Phase 04.2 | Pending |
-| RPC-03 | Phase 04.2 | Pending |
-| RPC-04 | Phase 04.2 | Pending |
+| GIT-01 | Phase 04.2 | Complete |
+| GIT-02 | Phase 04.2 | Complete |
+| DIAL-01 | Phase 04.2 | Complete |
+| RPC-01 | Phase 04.2 | Complete |
+| RPC-02 | Phase 04.2 | Complete |
+| RPC-03 | Phase 04.2 | Complete |
+| RPC-04 | Phase 04.2 | Complete |
 | ATOM-04 | Phase 04.2 | Complete |
 | ATOM-05 | Phase 04.2 | Complete |
-| UI-01 | Phase 04.2 | Pending |
-| UI-02 | Phase 04.2 | Pending |
-| UI-03 | Phase 04.2 | Pending |
+| UI-01 | Phase 06 | Pending |
+| UI-02 | Phase 06 | Pending |
+| UI-03 | Phase 06 | Pending |
 | UI-04 | Phase 04.2 | Complete |
 | UI-05 | Phase 04.2 | Complete |
 
@@ -139,4 +139,4 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-03-25*
-*Last updated: 2026-03-27 after Phase 04.2 planning*
+*Last updated: 2026-03-29 after gap closure phase creation*

@@ -17,6 +17,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Write Pipeline** - Stream buffer and PersistentClaudeCli decorator that intercept CLI events and persist them transparently
 - [x] **Phase 4: Session Reconstruction** - Read-path service that rebuilds full conversation state from stored events (completed 2026-03-26)
 - [ ] **Phase 5: Renderer Integration** - Tab restore, session hydration in the UI, and graceful shutdown ensuring data safety
+- [ ] **Phase 6: Project Management UI** - Session creation dialog, project removal context menu, directory picker registration (gap closure)
+- [ ] **Phase 7: Per-Tab CLI Process Isolation** - Wire TabRuntimeManager into production paths for per-tab runtime lifecycle (gap closure)
 
 ## Phase Details
 
@@ -151,6 +153,34 @@ Plans:
 - [ ] 05-02-PLAN.md — TabRuntimeManager service scaffold and graceful shutdown handler
 - [ ] 05-03-PLAN.md — Session hydration atoms, MessageSkeleton, ToolResultBlock, ChatPanel integration
 
+### Phase 6: Project Management UI (Gap Closure)
+**Goal**: Build the interactive project management UI — session creation dialog with branch autocomplete, project removal via context menu, and complete the directory picker registration flow
+**Depends on**: Phase 04.2
+**Requirements**: UI-01, UI-02, UI-03
+**Gap Closure**: Closes requirement gaps from v1.0 audit (Plan 04.2-05 never executed)
+**Success Criteria** (what must be TRUE):
+  1. User can create a session within a project via a dialog with branch name autocomplete (Command component) and a "Create worktree" checkbox
+  2. User can remove a project via right-click context menu with a confirmation dialog showing session count
+  3. Project registration via native directory picker completes the full flow with auto-derived name and auto-created first session
+**Plans:** 0 plans (run /gsd:plan-phase 06 to break down)
+
+Plans:
+- [ ] TBD
+
+### Phase 7: Per-Tab CLI Process Isolation (Gap Closure)
+**Goal**: Wire TabRuntimeManager.getOrCreate() into production paths so each tab gets an isolated ManagedRuntime, making disposeAll() on quit actually dispose per-tab runtimes
+**Depends on**: Phase 05
+**Requirements**: SAFE-01 (strengthens existing satisfaction)
+**Gap Closure**: Closes integration/flow gaps from v1.0 audit (TabRuntimeManager scaffold never wired)
+**Success Criteria** (what must be TRUE):
+  1. TabRuntimeManager.getOrCreate() is called from production tab creation paths, creating a per-tab ManagedRuntime
+  2. disposeAll() on app quit disposes all active per-tab runtimes (not a no-op on empty HashMap)
+  3. Per-tab CLI process isolation flow completes end-to-end: tab create → getOrCreate → per-tab runtime → dispose on quit
+**Plans:** 0 plans (run /gsd:plan-phase 07 to break down)
+
+Plans:
+- [ ] TBD
+
 ## Progress
 
 **Execution Order:**
@@ -163,3 +193,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 3. Write Pipeline | 1/2 | In Progress|  |
 | 4. Session Reconstruction | 3/3 | Complete   | 2026-03-26 |
 | 5. Renderer Integration | 0/3 | Planning complete | - |
+| 6. Project Management UI | 0/0 | Gap closure | - |
+| 7. Per-Tab CLI Isolation | 0/0 | Gap closure | - |
