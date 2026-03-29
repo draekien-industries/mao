@@ -128,9 +128,10 @@ Recent decisions affecting current work:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260328-dct | Add E2E logging into the app where it is missing | 2026-03-27 | 5d91f22 | [260328-dct-i-want-to-add-e2e-logging-into-the-app-w](./quick/260328-dct-i-want-to-add-e2e-logging-into-the-app-w/) |
+| 260329-swz | Add worktree-exists confirmation prompt to CreateSessionDialog | 2026-03-29 | f10175f | [260329-swz-add-worktree-exists-confirmation-prompt-](./quick/260329-swz-add-worktree-exists-confirmation-prompt-/) |
 
 ## Session Continuity
 
-Last activity: 2026-03-28
-Stopped at: Checkpoint: 05-03-PLAN.md Task 3 (human-verify pending)
+Last activity: 2026-03-29
+Stopped at: Completed quick task 260329-swz
 Resume file: None
