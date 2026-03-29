@@ -58,9 +58,9 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **RPC-04**: All four RPC groups (Claude, Persistence, Git, Dialog) merged via RpcGroup.merge and wired into server/client/main.ts (D-24)
 - [x] **ATOM-04**: Sidebar atoms replace mock data with real project/session state loaded from DB via RPC on app start (D-06, D-08)
 - [x] **ATOM-05**: RendererRpcClient Context.Tag provides full typed RPC client to renderer atoms for calling persistence, git, and dialog operations
-- [ ] **UI-01**: Session creation dialog with branch autocomplete (Command component) and "Create worktree" checkbox (D-01, D-05, D-10, D-11)
-- [ ] **UI-02**: Project removal via right-click context menu with confirmation dialog showing session count (D-02, D-03)
-- [ ] **UI-03**: Project registration via native directory picker with auto-derived name and auto-created first session (D-16, D-17)
+- [x] **UI-01**: Session creation dialog with branch autocomplete (Command component) and "Create worktree" checkbox (D-01, D-05, D-10, D-11)
+- [x] **UI-02**: Project removal via right-click context menu with confirmation dialog showing session count (D-02, D-03)
+- [x] **UI-03**: Project registration via native directory picker with auto-derived name and auto-created first session (D-16, D-17)
 - [x] **UI-04**: Sidebar empty state ("No projects yet") with Register Project button; new project auto-expands and activates (D-09, D-18)
 - [x] **UI-05**: Session click shows skeleton loading transition while atom state resolves (D-04)
 
@@ -126,9 +126,9 @@ Deferred to future release. Tracked but not in current roadmap.
 | RPC-04 | Phase 04.2 | Complete |
 | ATOM-04 | Phase 04.2 | Complete |
 | ATOM-05 | Phase 04.2 | Complete |
-| UI-01 | Phase 06 | Pending |
-| UI-02 | Phase 06 | Pending |
-| UI-03 | Phase 06 | Pending |
+| UI-01 | Phase 06 | Complete |
+| UI-02 | Phase 06 | Complete |
+| UI-03 | Phase 06 | Complete |
 | UI-04 | Phase 04.2 | Complete |
 | UI-05 | Phase 04.2 | Complete |
 

@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Write Pipeline** - Stream buffer and PersistentClaudeCli decorator that intercept CLI events and persist them transparently
 - [x] **Phase 4: Session Reconstruction** - Read-path service that rebuilds full conversation state from stored events (completed 2026-03-26)
 - [ ] **Phase 5: Renderer Integration** - Tab restore, session hydration in the UI, and graceful shutdown ensuring data safety
-- [ ] **Phase 6: Project Management UI** - Session creation dialog, project removal context menu, directory picker registration (gap closure)
+- [x] **Phase 6: Project Management UI** - Session creation dialog, project removal context menu, directory picker registration (gap closure) (completed 2026-03-29)
 - [ ] **Phase 7: Per-Tab CLI Process Isolation** - Wire TabRuntimeManager into production paths for per-tab runtime lifecycle (gap closure)
 
 ## Phase Details
@@ -162,10 +162,11 @@ Plans:
   1. User can create a session within a project via a dialog with branch name autocomplete (Command component) and a "Create worktree" checkbox
   2. User can remove a project via right-click context menu with a confirmation dialog showing session count
   3. Project registration via native directory picker completes the full flow with auto-derived name and auto-created first session
-**Plans:** 0 plans (run /gsd:plan-phase 06 to break down)
+**Plans:** Implemented via Plan 04.2-05 + quick task 260329-swz (D-12 worktree reuse prompt)
 
 Plans:
-- [ ] TBD
+- [x] 04.2-05-PLAN.md — Sidebar action atoms, UI dialog components, sidebar wiring (executed during Phase 04.2)
+- [x] 260329-swz — D-12 worktree-exists confirmation prompt in CreateSessionDialog
 
 ### Phase 7: Per-Tab CLI Process Isolation (Gap Closure)
 **Goal**: Wire TabRuntimeManager.getOrCreate() into production paths so each tab gets an isolated ManagedRuntime, making disposeAll() on quit actually dispose per-tab runtimes
@@ -193,5 +194,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 3. Write Pipeline | 1/2 | In Progress|  |
 | 4. Session Reconstruction | 3/3 | Complete   | 2026-03-26 |
 | 5. Renderer Integration | 0/3 | Planning complete | - |
-| 6. Project Management UI | 0/0 | Gap closure | - |
+| 6. Project Management UI | 2/2 | Complete | 2026-03-29 |
 | 7. Per-Tab CLI Isolation | 0/0 | Gap closure | - |
