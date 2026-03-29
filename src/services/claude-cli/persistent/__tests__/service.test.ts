@@ -10,6 +10,8 @@ import {
   StreamEventMessage,
   SystemInitEvent,
   TextBlock,
+  ToolResultBlock,
+  ToolResultEvent,
   UnknownEvent,
   Usage,
 } from "../../events";
@@ -73,8 +75,25 @@ const resultEvent = new ResultEvent({
   uuid: "u4",
 });
 
+const toolResultEvent = new ToolResultEvent({
+  type: "user",
+  session_id: "test-session",
+  message: {
+    id: "msg-tool",
+    type: "message",
+    role: "user",
+    content: [
+      new ToolResultBlock({
+        type: "tool_result",
+        tool_use_id: "toolu_1",
+        content: "file contents",
+      }),
+    ],
+  },
+});
+
 const unknownEvent = new UnknownEvent({
-  type: "tool_result",
+  type: "something_unknown",
 });
 
 // --- Test helpers ---
@@ -96,6 +115,7 @@ const makeTestLayer = (
     | StreamEventMessage
     | AssistantMessageEvent
     | ResultEvent
+    | ToolResultEvent
     | UnknownEvent
   >,
   options?: {
@@ -369,6 +389,61 @@ describe("PersistentClaudeCli", () => {
       expect(output[0]).toEqual(systemInitEvent);
       expect(output[1]).toEqual(assistantMessageEvent);
       expect(output[2]).toEqual(resultEvent);
+    });
+  });
+
+  describe("tool result persistence", () => {
+    it("persists ToolResultEvent with eventType user", async () => {
+      const { testLayer, appendedEvents } = makeTestLayer([
+        systemInitEvent,
+        toolResultEvent,
+        assistantMessageEvent,
+        resultEvent,
+      ]);
+
+      await Effect.runPromise(
+        Effect.gen(function* () {
+          const cli = yield* ClaudeCli;
+          const params = new QueryParams({ prompt: "hello" });
+          yield* Stream.runDrain(cli.query(params));
+        }).pipe(Effect.provide(testLayer)),
+      );
+
+      const eventTypes = appendedEvents.map((e) => e.eventType);
+      expect(eventTypes).toContain("user");
+      const userEvent = appendedEvents.find((e) => e.eventType === "user");
+      expect(userEvent).toBeDefined();
+      expect(userEvent?.eventData).toContain("tool_result");
+    });
+
+    it("non-tool-result events still handled as before (no regression)", async () => {
+      const { testLayer, appendedEvents } = makeTestLayer([
+        systemInitEvent,
+        streamEventMessage,
+        toolResultEvent,
+        assistantMessageEvent,
+        resultEvent,
+        unknownEvent,
+      ]);
+
+      await Effect.runPromise(
+        Effect.gen(function* () {
+          const cli = yield* ClaudeCli;
+          const params = new QueryParams({ prompt: "hello" });
+          yield* Stream.runDrain(cli.query(params));
+        }).pipe(Effect.provide(testLayer)),
+      );
+
+      const eventTypes = appendedEvents.map((e) => e.eventType);
+      // user_message (pre-stream), system, user (tool_result), assistant, result
+      expect(eventTypes).toContain("user_message");
+      expect(eventTypes).toContain("system");
+      expect(eventTypes).toContain("user");
+      expect(eventTypes).toContain("assistant");
+      expect(eventTypes).toContain("result");
+      // stream_event and unknown should NOT be persisted
+      expect(eventTypes).not.toContain("stream_event");
+      expect(eventTypes).not.toContain("something_unknown");
     });
   });
 

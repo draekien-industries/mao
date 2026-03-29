@@ -6,6 +6,8 @@ import {
   SystemInitEvent,
   SystemRetryEvent,
   TextBlock,
+  ToolResultBlock,
+  ToolResultEvent,
   UnknownEvent,
   Usage,
 } from "../../../claude-cli/events";
@@ -271,6 +273,126 @@ describe("SessionReconstructor", () => {
 
     expect(result.messages[0].id).toBe(42);
     expect(result.messages[0].createdAt).toBe("2026-03-15T10:30:00Z");
+  });
+
+  it("folds ToolResultEvent into ChatMessage with role tool_result", async () => {
+    const toolResult = new ToolResultEvent({
+      type: "user",
+      session_id: "session-1",
+      message: {
+        id: "msg-tr",
+        type: "message",
+        role: "user",
+        content: [
+          new ToolResultBlock({
+            type: "tool_result",
+            tool_use_id: "toolu_abc",
+            content: "file contents here",
+          }),
+        ],
+      },
+    });
+
+    const rows: StoredEventWithMeta[] = [
+      toRow(makeSystemInit("tool-session"), 1),
+      toRow(makeUserMessage("read a file"), 2, "2026-01-01T00:00:01Z"),
+      toRow(makeAssistantMessage("reading file..."), 3, "2026-01-01T00:00:02Z"),
+      toRow(toolResult, 4, "2026-01-01T00:00:03Z"),
+    ];
+
+    const result = await runTest(
+      rows,
+      Effect.gen(function* () {
+        const svc = yield* SessionReconstructor;
+        return yield* svc.reconstruct("session-1");
+      }),
+    );
+
+    expect(result.messages).toHaveLength(3);
+    const toolMsg = result.messages[2];
+    expect(toolMsg.role).toBe("tool_result");
+    expect(toolMsg.content).toBe("file contents here");
+    expect(toolMsg.toolUseId).toBe("toolu_abc");
+  });
+
+  it("folds ToolResultEvent with is_error into ChatMessage with isError true", async () => {
+    const toolResult = new ToolResultEvent({
+      type: "user",
+      session_id: "session-1",
+      message: {
+        id: "msg-tr-err",
+        type: "message",
+        role: "user",
+        content: [
+          new ToolResultBlock({
+            type: "tool_result",
+            tool_use_id: "toolu_err",
+            content: "command failed",
+            is_error: true,
+          }),
+        ],
+      },
+    });
+
+    const rows: StoredEventWithMeta[] = [
+      toRow(makeSystemInit("error-session"), 1),
+      toRow(toolResult, 2, "2026-01-01T00:00:01Z"),
+    ];
+
+    const result = await runTest(
+      rows,
+      Effect.gen(function* () {
+        const svc = yield* SessionReconstructor;
+        return yield* svc.reconstruct("session-1");
+      }),
+    );
+
+    expect(result.messages).toHaveLength(1);
+    expect(result.messages[0].role).toBe("tool_result");
+    expect(result.messages[0].isError).toBe(true);
+    expect(result.messages[0].content).toBe("command failed");
+  });
+
+  it("mixed event sequence produces correct message order", async () => {
+    const toolResult = new ToolResultEvent({
+      type: "user",
+      session_id: "session-1",
+      message: {
+        id: "msg-tr-mixed",
+        type: "message",
+        role: "user",
+        content: [
+          new ToolResultBlock({
+            type: "tool_result",
+            tool_use_id: "toolu_mix",
+            content: [{ type: "text", text: "tool output" }],
+          }),
+        ],
+      },
+    });
+
+    const rows: StoredEventWithMeta[] = [
+      toRow(makeSystemInit("mixed-session"), 1),
+      toRow(makeUserMessage("do something"), 2, "2026-01-01T00:00:01Z"),
+      toRow(makeAssistantMessage("using tool"), 3, "2026-01-01T00:00:02Z"),
+      toRow(toolResult, 4, "2026-01-01T00:00:03Z"),
+      toRow(makeAssistantMessage("done with tool"), 5, "2026-01-01T00:00:04Z"),
+    ];
+
+    const result = await runTest(
+      rows,
+      Effect.gen(function* () {
+        const svc = yield* SessionReconstructor;
+        return yield* svc.reconstruct("session-1");
+      }),
+    );
+
+    expect(result.messages).toHaveLength(4);
+    expect(result.messages[0].role).toBe("user");
+    expect(result.messages[1].role).toBe("assistant");
+    expect(result.messages[2].role).toBe("tool_result");
+    expect(result.messages[2].content).toBe("tool output");
+    expect(result.messages[3].role).toBe("assistant");
   });
 
   it("returns fallback session when getBySessionWithMeta returns empty array", async () => {

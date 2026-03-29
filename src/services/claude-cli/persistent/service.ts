@@ -9,6 +9,7 @@ import {
   isAssistantMessage,
   isResult,
   isSystemInit,
+  isToolResult,
 } from "../events";
 import type { ContinueParams, ResumeParams } from "../params";
 import { QueryParams } from "../params";
@@ -80,6 +81,9 @@ const wrapStream = (
       }
       if (isResult(event)) {
         return persistEvent(store, sessionId, "result", event);
+      }
+      if (isToolResult(event)) {
+        return persistEvent(store, sessionId, "user", event);
       }
       // D-04, D-05, D-06: discard StreamEventMessage, SystemRetryEvent, UnknownEvent
       return Effect.void;
@@ -159,6 +163,11 @@ export const makePersistentClaudeCliLive = () =>
 
                 if (isResult(event)) {
                   yield* persistEvent(store, currentSessionId, "result", event);
+                  return;
+                }
+
+                if (isToolResult(event)) {
+                  yield* persistEvent(store, currentSessionId, "user", event);
                 }
               }),
             ),
