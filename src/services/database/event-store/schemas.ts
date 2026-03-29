@@ -4,6 +4,7 @@ import {
   ResultEvent,
   SystemInitEvent,
   SystemRetryEvent,
+  ToolResultEvent,
   UnknownEvent,
 } from "../../claude-cli/events";
 
@@ -24,6 +25,7 @@ export const StoredEvent = Schema.Union(
   AssistantMessageEvent,
   ResultEvent,
   UserMessageEvent,
+  ToolResultEvent,
   UnknownEvent,
 );
 export type StoredEvent = typeof StoredEvent.Type;

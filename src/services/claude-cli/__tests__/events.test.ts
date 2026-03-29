@@ -244,15 +244,14 @@ describe("ClaudeEvent union (CLI stream-json)", () => {
   it("UnknownEvent catches unrecognised types without error", async () => {
     const { ClaudeEvent } = await import("../events");
     const raw = {
-      type: "user",
+      type: "something_random",
       session_id: "sess_01",
       uuid: "uuid_01",
-      content: [],
     };
     const result = await Effect.runPromise(
       Schema.decodeUnknown(ClaudeEvent)(raw),
     );
-    expect(result.type).toBe("user");
+    expect(result.type).toBe("something_random");
   });
 });
 
@@ -352,5 +351,172 @@ describe("Schema.is type guards", () => {
     expect(isResult(event)).toBe(true);
     expect(isSystemInit(event)).toBe(false);
     expect(isAssistantMessage(event)).toBe(false);
+  });
+});
+
+describe("ToolResultEvent", () => {
+  it("decodes a tool_result user event with string content", async () => {
+    const { ClaudeEvent, ToolResultEvent } = await import("../events");
+    const raw = {
+      type: "user",
+      session_id: "sess-1",
+      message: {
+        id: "msg_1",
+        type: "message",
+        role: "user",
+        content: [
+          {
+            type: "tool_result",
+            tool_use_id: "toolu_1",
+            content: "file contents here",
+          },
+        ],
+      },
+    };
+    const result = await Effect.runPromise(
+      Schema.decodeUnknown(ClaudeEvent)(raw),
+    );
+    expect(result).toBeInstanceOf(ToolResultEvent);
+    expect(result.type).toBe("user");
+  });
+
+  it("decodes a tool_result user event with array content blocks", async () => {
+    const { ClaudeEvent, ToolResultEvent } = await import("../events");
+    const raw = {
+      type: "user",
+      session_id: "sess-1",
+      message: {
+        id: "msg_2",
+        type: "message",
+        role: "user",
+        content: [
+          {
+            type: "tool_result",
+            tool_use_id: "toolu_2",
+            content: [{ type: "text", text: "result text" }],
+          },
+        ],
+      },
+    };
+    const result = await Effect.runPromise(
+      Schema.decodeUnknown(ClaudeEvent)(raw),
+    );
+    expect(result).toBeInstanceOf(ToolResultEvent);
+  });
+
+  it("decodes with is_error: true", async () => {
+    const { ClaudeEvent, ToolResultEvent } = await import("../events");
+    const raw = {
+      type: "user",
+      session_id: "sess-1",
+      message: {
+        id: "msg_3",
+        type: "message",
+        role: "user",
+        content: [
+          {
+            type: "tool_result",
+            tool_use_id: "toolu_3",
+            content: "error output",
+            is_error: true,
+          },
+        ],
+      },
+    };
+    const result = await Effect.runPromise(
+      Schema.decodeUnknown(ClaudeEvent)(raw),
+    );
+    expect(result).toBeInstanceOf(ToolResultEvent);
+    if (result instanceof ToolResultEvent) {
+      expect(result.message.content[0].is_error).toBe(true);
+    }
+  });
+
+  it("isToolResult type guard returns true for ToolResultEvent, false for others", async () => {
+    const { ClaudeEvent, isToolResult } = await import("../events");
+    const toolResultRaw = {
+      type: "user",
+      session_id: "sess-1",
+      message: {
+        id: "msg_1",
+        type: "message",
+        role: "user",
+        content: [
+          {
+            type: "tool_result",
+            tool_use_id: "toolu_1",
+            content: "result",
+          },
+        ],
+      },
+    };
+    const otherRaw = {
+      type: "result",
+      subtype: "success",
+      result: "done",
+      is_error: false,
+      session_id: "sess_01",
+      uuid: "uuid_01",
+    };
+    const toolResultEvent = await Effect.runPromise(
+      Schema.decodeUnknown(ClaudeEvent)(toolResultRaw),
+    );
+    const otherEvent = await Effect.runPromise(
+      Schema.decodeUnknown(ClaudeEvent)(otherRaw),
+    );
+    expect(isToolResult(toolResultEvent)).toBe(true);
+    expect(isToolResult(otherEvent)).toBe(false);
+  });
+
+  it("is matched before UnknownEvent in ClaudeEvent union", async () => {
+    const { ClaudeEvent, ToolResultEvent } = await import("../events");
+    const raw = {
+      type: "user",
+      session_id: "sess-1",
+      message: {
+        id: "msg_1",
+        type: "message",
+        role: "user",
+        content: [
+          {
+            type: "tool_result",
+            tool_use_id: "toolu_1",
+            content: "test",
+          },
+        ],
+      },
+    };
+    const result = await Effect.runPromise(
+      Schema.decodeUnknown(ClaudeEvent)(raw),
+    );
+    // Should be ToolResultEvent, NOT UnknownEvent
+    expect(result).toBeInstanceOf(ToolResultEvent);
+  });
+});
+
+describe("StoredEvent with ToolResultEvent", () => {
+  it("decodes ToolResultEvent correctly", async () => {
+    const { ToolResultEvent } = await import("../events");
+    const { StoredEvent } = await import("../../database/event-store/schemas");
+    const raw = {
+      type: "user",
+      session_id: "sess-1",
+      message: {
+        id: "msg_1",
+        type: "message",
+        role: "user",
+        content: [
+          {
+            type: "tool_result",
+            tool_use_id: "toolu_1",
+            content: "stored result",
+          },
+        ],
+      },
+    };
+    const result = await Effect.runPromise(
+      Schema.decodeUnknown(StoredEvent)(raw),
+    );
+    expect(result).toBeInstanceOf(ToolResultEvent);
   });
 });

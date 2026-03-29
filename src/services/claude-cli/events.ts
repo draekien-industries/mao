@@ -170,7 +170,39 @@ export class ResultEvent extends Schema.Class<ResultEvent>("ResultEvent")({
   usage: Schema.optional(Usage),
 }) {}
 
-// Catchall — must be last; catches anything not matched above (e.g. "user"/tool_result events)
+// Tool result content block (inside a tool_result user event)
+export class ToolResultBlock extends Schema.Class<ToolResultBlock>(
+  "ToolResultBlock",
+)({
+  type: Schema.Literal("tool_result"),
+  tool_use_id: Schema.String,
+  content: Schema.Union(
+    Schema.String,
+    Schema.Array(
+      Schema.Struct({
+        type: Schema.String,
+        text: Schema.optional(Schema.String),
+      }),
+    ),
+  ),
+  is_error: Schema.optional(Schema.Boolean),
+}) {}
+
+// Tool result user event — emitted when Claude CLI reports tool execution results
+export class ToolResultEvent extends Schema.Class<ToolResultEvent>(
+  "ToolResultEvent",
+)({
+  type: Schema.Literal("user"),
+  session_id: Schema.String,
+  message: Schema.Struct({
+    id: Schema.String,
+    type: Schema.Literal("message"),
+    role: Schema.Literal("user"),
+    content: Schema.Array(ToolResultBlock),
+  }),
+}) {}
+
+// Catchall — must be last; catches anything not matched above
 export class UnknownEvent extends Schema.Class<UnknownEvent>("UnknownEvent")({
   type: Schema.String,
   session_id: Schema.optional(Schema.String),
@@ -183,6 +215,7 @@ export const ClaudeEvent = Schema.Union(
   StreamEventMessage,
   AssistantMessageEvent,
   ResultEvent,
+  ToolResultEvent, // before UnknownEvent
   UnknownEvent, // must be last
 );
 export type ClaudeEvent = typeof ClaudeEvent.Type;
@@ -193,6 +226,7 @@ export const isSystemRetry = Schema.is(SystemRetryEvent);
 export const isStreamEvent = Schema.is(StreamEventMessage);
 export const isAssistantMessage = Schema.is(AssistantMessageEvent);
 export const isResult = Schema.is(ResultEvent);
+export const isToolResult = Schema.is(ToolResultEvent);
 
 // Type guards for narrowing nested ApiStreamEvent / ContentDelta
 export const isContentBlockDelta = Schema.is(ContentBlockDeltaApiEvent);

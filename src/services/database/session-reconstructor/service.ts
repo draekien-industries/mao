@@ -1,6 +1,10 @@
 import { Effect, Layer } from "effect";
 import { extractAssistantText } from "@/lib/extract-assistant-text";
-import { isAssistantMessage, isSystemInit } from "../../claude-cli/events";
+import {
+  isAssistantMessage,
+  isSystemInit,
+  isToolResult,
+} from "../../claude-cli/events";
 import { annotations } from "../../diagnostics";
 import { isUserMessage } from "../event-store/schemas";
 import { EventStore } from "../event-store/service-definition";
@@ -41,6 +45,28 @@ export const makeSessionReconstructorLive = () =>
                   createdAt: row.createdAt,
                   id: row.sequenceNumber,
                   role: "assistant",
+                }),
+              );
+            } else if (isToolResult(row.event)) {
+              // D-10: Tool results as separate message blocks
+              const contentText = row.event.message.content
+                .map((block) => {
+                  if (typeof block.content === "string") return block.content;
+                  return block.content
+                    .map((c) => c.text ?? "")
+                    .filter((t) => t.length > 0)
+                    .join("\n");
+                })
+                .join("\n");
+              const firstBlock = row.event.message.content[0];
+              messages.push(
+                new ChatMessage({
+                  content: contentText,
+                  createdAt: row.createdAt,
+                  id: row.sequenceNumber,
+                  isError: firstBlock?.is_error === true ? true : undefined,
+                  role: "tool_result",
+                  toolUseId: firstBlock?.tool_use_id,
                 }),
               );
             }
