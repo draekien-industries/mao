@@ -42,7 +42,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Safety
 
-- [ ] **SAFE-01**: Graceful shutdown flushes or explicitly discards pending writes on app quit via before-quit event
+- [x] **SAFE-01**: Graceful shutdown flushes or explicitly discards pending writes on app quit via before-quit event
 - [x] **SAFE-02**: Database integrity check (PRAGMA quick_check) runs on startup and warns if corruption detected
 
 ### Project & Session Management (Phase 04.2)
@@ -113,7 +113,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | RECON-01 | Phase 4 | Complete |
 | RECON-02 | Phase 4 | Complete |
 | RECON-03 | Phase 4 | Complete |
-| SAFE-01 | Phase 5 | Pending |
+| SAFE-01 | Phase 5 | Complete |
 | SAFE-02 | Phase 1 | Complete |
 | PROJ-01 | Phase 04.2 | Complete |
 | PROJ-02 | Phase 04.2 | Complete |

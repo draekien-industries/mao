@@ -23,6 +23,8 @@ import { DialogRpcHandlers } from "./services/dialog-rpc/handlers";
 import { makeGitServiceLive } from "./services/git/service";
 import { GitRpcHandlers } from "./services/git-rpc/handlers";
 import { PersistenceRpcHandlers } from "./services/persistence-rpc/handlers";
+import { makeTabRuntimeManagerLive } from "./services/tab-runtime-manager/service";
+import { TabRuntimeManager } from "./services/tab-runtime-manager/service-definition";
 
 if (started) {
   app.quit();
@@ -43,11 +45,13 @@ const SessionReconstructorLayer = makeSessionReconstructorLive();
 const ProjectStoreLayer = makeProjectStoreLive();
 const GitServiceLayer = makeGitServiceLive();
 const DialogServiceLayer = makeDialogServiceLive();
+const TabRuntimeManagerLayer = makeTabRuntimeManagerLive();
 
 const BaseLayer = ClaudeRpcHandlers.pipe(
   Layer.provideMerge(PersistenceRpcHandlers),
   Layer.provideMerge(GitRpcHandlers),
   Layer.provideMerge(DialogRpcHandlers),
+  Layer.provideMerge(TabRuntimeManagerLayer),
   Layer.provideMerge(SessionReconstructorLayer),
   Layer.provideMerge(PersistentLayer),
   Layer.provideMerge(ClaudeCliLive),
@@ -117,8 +121,21 @@ app.on("before-quit", async (e) => {
   if (isQuitting) return;
   isQuitting = true;
   e.preventDefault();
-  devLog("disposing runtime", app.isPackaged);
+  devLog("disposing per-tab runtimes", app.isPackaged);
   try {
+    // D-04: Kill all in-flight CLI streams by disposing per-tab runtimes first
+    await runtime.runPromise(
+      Effect.gen(function* () {
+        const manager = yield* TabRuntimeManager;
+        yield* manager.disposeAll();
+      }),
+    );
+  } catch (err) {
+    devLog(`per-tab runtime disposal error: ${err}`, app.isPackaged);
+  }
+  devLog("disposing main runtime", app.isPackaged);
+  try {
+    // D-05: Main runtime dispose handles DB cleanup via acquireRelease
     await runtime.dispose();
   } finally {
     devLog("runtime disposed, exiting", app.isPackaged);

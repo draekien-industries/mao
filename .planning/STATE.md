@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to plan
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-03-29T01:26:46.628Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-03-29T01:26:49.091Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 10
@@ -64,6 +64,7 @@ Plan: Not started
 | Phase 04.4 P01 | 5min | 2 tasks | 3 files |
 | Phase 04.5 P01 | 2min | 1 tasks | 3 files |
 | Phase 05 P01 | 5min | 2 tasks | 8 files |
+| Phase 05 P02 | 5min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,8 @@ Recent decisions affecting current work:
 - [Phase 04.5]: Used empty string default for cwdAtom with || undefined coercion to preserve existing fallback behavior
 - [Phase 05]: ToolResultBlock content uses Schema.Union(String, Array) for both string and structured content formats
 - [Phase 05]: Tool result events persisted with eventType 'user' matching CLI event type field
+- [Phase 05]: Used ManagedRuntime.make(Layer.empty) as scaffold for per-tab runtimes; real ClaudeCliLive wiring deferred
+- [Phase 05]: Used Cause.UnknownException for typed catch in tryPromise disposal calls
 
 ### Pending Todos
 
@@ -127,5 +130,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last activity: 2026-03-28
-Stopped at: Completed 05-01-PLAN.md
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
