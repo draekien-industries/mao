@@ -1,4 +1,4 @@
-import { Effect, HashMap, Layer, ManagedRuntime, Ref } from "effect";
+import { Cause, Effect, HashMap, Layer, ManagedRuntime, Ref } from "effect";
 import { annotations } from "../diagnostics";
 import type { TabRuntime } from "./service-definition";
 import { TabRuntimeManager } from "./service-definition";
@@ -57,7 +57,7 @@ export const makeTabRuntimeManagerLive = () =>
           if (existing._tag === "Some") {
             yield* Effect.tryPromise({
               try: () => existing.value.dispose(),
-              catch: (error) => error,
+              catch: (error) => new Cause.UnknownException(error),
             }).pipe(
               Effect.tapError((error) =>
                 Effect.logError("tab runtime disposal failed").pipe(
@@ -91,7 +91,7 @@ export const makeTabRuntimeManagerLive = () =>
           yield* Effect.forEach(entries, ([tabId, tabRuntime]) =>
             Effect.tryPromise({
               try: () => tabRuntime.dispose(),
-              catch: (error) => error,
+              catch: (error) => new Cause.UnknownException(error),
             }).pipe(
               Effect.tapError((error) =>
                 Effect.logError(
