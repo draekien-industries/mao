@@ -144,8 +144,12 @@ Plans:
   1. On app reopen, all previously open tabs are restored with correct project context (cwd, git branch, display label) and the previously active tab is focused
   2. Each restored tab shows its full conversation history as it appeared before the app was closed
   3. Quitting the app (via menu, OS close, or keyboard shortcut) flushes or explicitly discards pending writes before the database connection closes — no data is silently lost
-**Plans**: TBD
-**UI hint**: yes
+**Plans:** 3 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — ToolResultEvent schema, persistence in PersistentClaudeCli, and SessionReconstructor extension
+- [ ] 05-02-PLAN.md — TabRuntimeManager service scaffold and graceful shutdown handler
+- [ ] 05-03-PLAN.md — Session hydration atoms, MessageSkeleton, ToolResultBlock, ChatPanel integration
 
 ## Progress
 
@@ -158,4 +162,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 2. Storage Services | 0/3 | Planning complete | - |
 | 3. Write Pipeline | 1/2 | In Progress|  |
 | 4. Session Reconstruction | 3/3 | Complete   | 2026-03-26 |
-| 5. Renderer Integration | 0/? | Not started | - |
+| 5. Renderer Integration | 0/3 | Planning complete | - |
