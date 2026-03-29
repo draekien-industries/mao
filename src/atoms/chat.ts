@@ -100,134 +100,137 @@ export const tabStatusAtom = Atom.family((tabId: string) =>
 );
 
 // --- Send message action atom ---
-// Single global action — not a family — so the fiber is never tied to a
-// per-tab atom subscription that gets cleaned up on tab switch.
+// Family keyed by tabId so each tab gets its own fiber — concurrent
+// streaming in Tab A won't be interrupted when Tab B starts a new message.
+// Atom.keepAlive prevents the atom (and its fiber) from being cleaned up
+// when the ChatPanel unmounts on tab switch.
 
-export const sendMessageAtom = appRuntime.fn(
-  (
-    params: { readonly tabId: string; readonly prompt: string },
-    ctx: Atom.FnContext,
-  ) =>
-    Effect.gen(function* () {
-      const { tabId, prompt } = params;
-      yield* Effect.logDebug("Sending message").pipe(
-        Effect.annotateLogs(annotations.tabId, tabId),
-      );
+export const sendMessageAtom = Atom.family((tabId: string) =>
+  appRuntime
+    .fn((prompt: string, ctx: Atom.FnContext) =>
+      Effect.gen(function* () {
+        yield* Effect.logDebug("Sending message").pipe(
+          Effect.annotateLogs(annotations.tabId, tabId),
+        );
 
-      // Add user message and clear previous state (D-09: error cleared on new send)
-      const prevMessages = ctx(messagesAtom(tabId));
-      ctx.set(messagesAtom(tabId), [
-        ...prevMessages,
-        { role: "user" as const, content: prompt },
-      ]);
-      ctx.set(streamingTextAtom(tabId), "");
-      ctx.set(errorAtom(tabId), null);
-      ctx.set(toolInputAtom(tabId), false);
-      ctx.set(isStreamingAtom(tabId), true);
+        // Add user message and clear previous state (D-09: error cleared on new send)
+        const prevMessages = ctx(messagesAtom(tabId));
+        ctx.set(messagesAtom(tabId), [
+          ...prevMessages,
+          { role: "user" as const, content: prompt },
+        ]);
+        ctx.set(streamingTextAtom(tabId), "");
+        ctx.set(errorAtom(tabId), null);
+        ctx.set(toolInputAtom(tabId), false);
+        ctx.set(isStreamingAtom(tabId), true);
 
-      // D-10, D-12: Track concurrent stream count
-      ctx.set(activeStreamCountAtom, ctx(activeStreamCountAtom) + 1);
+        // D-10, D-12: Track concurrent stream count
+        ctx.set(activeStreamCountAtom, ctx(activeStreamCountAtom) + 1);
 
-      const cli = yield* ClaudeCli;
-      const rpcClient = yield* RendererRpcClient;
-      const currentSessionId = ctx(sessionIdAtom(tabId));
-      const cwd = ctx(cwdAtom(tabId));
+        const cli = yield* ClaudeCli;
+        const rpcClient = yield* RendererRpcClient;
+        const currentSessionId = ctx(sessionIdAtom(tabId));
+        const cwd = ctx(cwdAtom(tabId));
 
-      const stream = currentSessionId
-        ? cli.resume(
-            new ResumeParams({
-              prompt,
-              session_id: currentSessionId,
-              cwd: cwd || undefined,
-            }),
-          )
-        : cli.query(new QueryParams({ prompt, cwd: cwd || undefined }));
+        const stream = currentSessionId
+          ? cli.resume(
+              new ResumeParams({
+                prompt,
+                session_id: currentSessionId,
+                cwd: cwd || undefined,
+              }),
+            )
+          : cli.query(new QueryParams({ prompt, cwd: cwd || undefined }));
 
-      yield* Stream.runForEach(stream, (event) =>
-        Effect.gen(function* () {
-          const prevEvents = ctx(eventsAtom(tabId));
-          ctx.set(eventsAtom(tabId), [...prevEvents, event]);
+        yield* Stream.runForEach(stream, (event) =>
+          Effect.gen(function* () {
+            const prevEvents = ctx(eventsAtom(tabId));
+            ctx.set(eventsAtom(tabId), [...prevEvents, event]);
 
-          if (isSystemInit(event)) {
-            ctx.set(sessionIdAtom(tabId), event.session_id);
-            // Persist session_id to Tab DB record on first message
-            if (currentSessionId === null) {
-              yield* rpcClient
-                .updateTab({
-                  id: Number(tabId),
-                  session_id: event.session_id,
-                })
-                .pipe(
-                  Effect.tapError((err) =>
-                    Effect.logError("Failed to persist session_id to tab").pipe(
-                      Effect.annotateLogs("error", String(err)),
-                      Effect.annotateLogs(annotations.tabId, tabId),
+            if (isSystemInit(event)) {
+              ctx.set(sessionIdAtom(tabId), event.session_id);
+              // Persist session_id to Tab DB record on first message
+              if (currentSessionId === null) {
+                yield* rpcClient
+                  .updateTab({
+                    id: Number(tabId),
+                    session_id: event.session_id,
+                  })
+                  .pipe(
+                    Effect.tapError((err) =>
+                      Effect.logError(
+                        "Failed to persist session_id to tab",
+                      ).pipe(
+                        Effect.annotateLogs("error", String(err)),
+                        Effect.annotateLogs(annotations.tabId, tabId),
+                      ),
                     ),
-                  ),
-                  Effect.catchAll(() => Effect.void),
-                );
+                    Effect.catchAll(() => Effect.void),
+                  );
+              }
+              // Clear tool-input when new stream starts after tool approval
+              ctx.set(toolInputAtom(tabId), false);
+            } else if (isStreamEvent(event)) {
+              if (
+                isContentBlockDelta(event.event) &&
+                isTextDelta(event.event.delta)
+              ) {
+                const chunk = event.event.delta.text;
+                const prev = ctx(streamingTextAtom(tabId));
+                ctx.set(streamingTextAtom(tabId), prev + chunk);
+              }
+            } else if (isAssistantMessage(event)) {
+              // D-03: Tool-input detection
+              const hasToolUse = event.message.content.some(
+                (block) => block.type === "tool_use",
+              );
+              if (hasToolUse) {
+                ctx.set(toolInputAtom(tabId), true);
+              }
+
+              // Existing: extract text, update messages, clear streaming text
+              const text = extractAssistantText(event);
+              const prev = ctx(messagesAtom(tabId));
+              ctx.set(messagesAtom(tabId), [
+                ...prev,
+                { role: "assistant" as const, content: text },
+              ]);
+              ctx.set(streamingTextAtom(tabId), "");
+
+              // D-07: Mark tab unread when message arrives on non-active tab
+              const activeTab = ctx(activeTabIdAtom);
+              if (String(activeTab) !== tabId) {
+                ctx.set(unreadAtom(tabId), true);
+              }
+            } else if (isResult(event)) {
+              ctx.set(isStreamingAtom(tabId), false);
+              ctx.set(toolInputAtom(tabId), false);
             }
-            // Clear tool-input when new stream starts after tool approval
-            ctx.set(toolInputAtom(tabId), false);
-          } else if (isStreamEvent(event)) {
-            if (
-              isContentBlockDelta(event.event) &&
-              isTextDelta(event.event.delta)
-            ) {
-              const chunk = event.event.delta.text;
-              const prev = ctx(streamingTextAtom(tabId));
-              ctx.set(streamingTextAtom(tabId), prev + chunk);
-            }
-          } else if (isAssistantMessage(event)) {
-            // D-03: Tool-input detection
-            const hasToolUse = event.message.content.some(
-              (block) => block.type === "tool_use",
+          }),
+        ).pipe(
+          // D-10: Guarantee stream count decrement on completion or error
+          Effect.ensuring(
+            Effect.sync(() => {
+              ctx.set(
+                activeStreamCountAtom,
+                Math.max(0, ctx(activeStreamCountAtom) - 1),
+              );
+            }),
+          ),
+        );
+      }).pipe(
+        Effect.catchAll((err) =>
+          Effect.gen(function* () {
+            yield* Effect.logError("Send message failed").pipe(
+              Effect.annotateLogs("error", formatClaudeCliError(err)),
+              Effect.annotateLogs(annotations.tabId, tabId),
             );
-            if (hasToolUse) {
-              ctx.set(toolInputAtom(tabId), true);
-            }
-
-            // Existing: extract text, update messages, clear streaming text
-            const text = extractAssistantText(event);
-            const prev = ctx(messagesAtom(tabId));
-            ctx.set(messagesAtom(tabId), [
-              ...prev,
-              { role: "assistant" as const, content: text },
-            ]);
-            ctx.set(streamingTextAtom(tabId), "");
-
-            // D-07: Mark tab unread when message arrives on non-active tab
-            const activeTab = ctx(activeTabIdAtom);
-            if (String(activeTab) !== tabId) {
-              ctx.set(unreadAtom(tabId), true);
-            }
-          } else if (isResult(event)) {
+            ctx.set(errorAtom(tabId), formatClaudeCliError(err));
             ctx.set(isStreamingAtom(tabId), false);
-            ctx.set(toolInputAtom(tabId), false);
-          }
-        }),
-      ).pipe(
-        // D-10: Guarantee stream count decrement on completion or error
-        Effect.ensuring(
-          Effect.sync(() => {
-            ctx.set(
-              activeStreamCountAtom,
-              Math.max(0, ctx(activeStreamCountAtom) - 1),
-            );
           }),
         ),
-      );
-    }).pipe(
-      Effect.catchAll((err) =>
-        Effect.gen(function* () {
-          yield* Effect.logError("Send message failed").pipe(
-            Effect.annotateLogs("error", formatClaudeCliError(err)),
-            Effect.annotateLogs(annotations.tabId, params.tabId),
-          );
-          ctx.set(errorAtom(params.tabId), formatClaudeCliError(err));
-          ctx.set(isStreamingAtom(params.tabId), false);
-        }),
+        Effect.annotateLogs(annotations.service, "chat"),
       ),
-      Effect.annotateLogs(annotations.service, "chat"),
-    ),
+    )
+    .pipe(Atom.keepAlive),
 );

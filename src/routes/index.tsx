@@ -58,7 +58,7 @@ function ChatPanel({ tabKey }: { readonly tabKey: string }) {
   const error = useAtomValue(errorAtom(tabKey));
   const events = useAtomValue(eventsAtom(tabKey));
   const sessionLoading = useAtomValue(sessionLoadingAtom);
-  const sendMessage = useAtomSet(sendMessageAtom);
+  const sendMessage = useAtomSet(sendMessageAtom(tabKey));
   const { debugOpen } = useDebugPanel();
 
   // Per-tab draft input via atom (D-16)
@@ -119,7 +119,7 @@ function ChatPanel({ tabKey }: { readonly tabKey: string }) {
     e.stopPropagation();
     const trimmed = draft.trim();
     if (!trimmed || isStreaming) return;
-    sendMessage({ tabId: tabKey, prompt: trimmed });
+    sendMessage(trimmed);
     setDraft("");
   };
 
