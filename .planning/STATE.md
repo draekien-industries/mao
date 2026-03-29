@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to plan
-stopped_at: Completed 04.3-04-PLAN.md
-last_updated: "2026-03-28T01:13:37.540Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-03-29T01:26:49.091Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 9
@@ -61,6 +61,7 @@ Plan: Not started
 | Phase 04.3 P03 | 4min | 2 tasks | 3 files |
 | Phase 04.3 P02 | 2min | 1 tasks | 1 files |
 | Phase 04.3 P04 | 2min | 1 tasks | 1 files |
+| Phase 05 P02 | 5min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,8 @@ Recent decisions affecting current work:
 - [Phase 04.3]: Removed TanStack Form from chat panel in favor of atom-backed draft input for per-tab persistence
 - [Phase 04.3]: Used requestAnimationFrame-throttled passive scroll listener with 32px threshold for smart auto-scroll
 - [Phase 04.3]: Component extraction over conditional hook workaround for null tabKey guard
+- [Phase 05]: Used ManagedRuntime.make(Layer.empty) as scaffold for per-tab runtimes; real ClaudeCliLive wiring deferred
+- [Phase 05]: Used Cause.UnknownException for typed catch in tryPromise disposal calls
 
 ### Pending Todos
 
@@ -118,5 +121,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last activity: 2026-03-28
-Stopped at: Completed 04.3-04-PLAN.md
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
