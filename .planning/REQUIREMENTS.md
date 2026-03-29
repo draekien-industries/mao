@@ -32,7 +32,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **TAB-01**: Tab metadata stored: repository/cwd, git branch/worktree, Claude session ID, tab order, display label
 - [ ] **TAB-02**: Active tab indicator persisted so the correct tab is focused on reopen
-- [ ] **TAB-03**: Full tab layout restored on app reopen with all tabs pointing to correct projects
+- [x] **TAB-03**: Full tab layout restored on app reopen with all tabs pointing to correct projects
 
 ### Session Reconstruction
 
@@ -109,7 +109,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | WPIPE-04 | Phase 3 | Complete |
 | TAB-01 | Phase 2 | Complete |
 | TAB-02 | Phase 5 | Pending |
-| TAB-03 | Phase 5 | Pending |
+| TAB-03 | Phase 5 | Complete |
 | RECON-01 | Phase 4 | Complete |
 | RECON-02 | Phase 4 | Complete |
 | RECON-03 | Phase 4 | Complete |
