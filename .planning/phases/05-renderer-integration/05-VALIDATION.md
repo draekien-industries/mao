@@ -38,24 +38,27 @@ created: 2026-03-29
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 05-01-01 | 01 | 1 | TAB-02 | unit | `npx vitest run src/atoms/__tests__/sidebar.test.ts -t "first tab"` | ❌ W0 | ⬜ pending |
-| 05-01-02 | 01 | 1 | TAB-03 | unit | `npx vitest run src/atoms/__tests__/sidebar.test.ts -t "reconstruct"` | ❌ W0 | ⬜ pending |
-| 05-02-01 | 02 | 2 | D-09 | unit | `npx vitest run src/services/claude-cli/__tests__/events.test.ts -t "ToolResult"` | ❌ W0 | ⬜ pending |
-| 05-02-02 | 02 | 2 | D-09 | unit | `npx vitest run src/services/claude-cli/persistent/__tests__/service.test.ts -t "tool_result"` | ❌ W0 | ⬜ pending |
-| 05-02-03 | 02 | 2 | D-10 | unit | `npx vitest run src/services/database/session-reconstructor/__tests__/service.test.ts -t "tool_result"` | ❌ W0 | ⬜ pending |
-| 05-03-01 | 03 | 3 | SAFE-01 | unit | `npx vitest run src/services/__tests__/shutdown.test.ts` | ❌ W0 | ⬜ pending |
+| 05-01-01 | 01 | 1 | TAB-03 | unit | `npx vitest run src/services/claude-cli/__tests__/events.test.ts -t "ToolResult"` | W0 | pending |
+| 05-01-02 | 01 | 1 | TAB-03 | unit | `npx vitest run src/services/claude-cli/persistent/__tests__/service.test.ts -t "tool_result"` | W0 | pending |
+| 05-01-03 | 01 | 1 | TAB-03 | unit | `npx vitest run src/services/database/session-reconstructor/__tests__/service.test.ts -t "tool_result"` | W0 | pending |
+| 05-02-01 | 02 | 1 | SAFE-01 | unit | `npx vitest run src/services/tab-runtime-manager/__tests__/service.test.ts` | W0 | pending |
+| 05-02-02 | 02 | 1 | SAFE-01 | unit | `npx vitest run src/services/__tests__/shutdown.test.ts` | W0 | pending |
+| 05-02-03 | 02 | 1 | SAFE-01 | typecheck | `npm run typecheck` | n/a | pending |
+| 05-03-01 | 03 | 2 | TAB-02/TAB-03 | unit | `npx vitest run src/atoms/__tests__/sidebar.test.ts` | W0 | pending |
+| 05-03-02 | 03 | 2 | TAB-03 | typecheck | `npm run typecheck && npm run check:write` | n/a | pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: pending / green / red / flaky*
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `src/atoms/__tests__/sidebar.test.ts` — test stubs for reconstruction integration in loadProjectsAtom/setActiveTabAtom
 - [ ] `src/services/claude-cli/__tests__/events.test.ts` — extend with ToolResultEvent decode tests
 - [ ] `src/services/claude-cli/persistent/__tests__/service.test.ts` — extend with ToolResultEvent persistence cases
 - [ ] `src/services/database/session-reconstructor/__tests__/service.test.ts` — extend with tool result reconstruction cases
+- [ ] `src/services/tab-runtime-manager/__tests__/service.test.ts` — new test file for TabRuntimeManager service
 - [ ] `src/services/__tests__/shutdown.test.ts` — new test file for per-tab runtime disposal order
+- [ ] `src/atoms/__tests__/sidebar.test.ts` — new test file for hydration logic in loadProjectsAtom/setActiveTabAtom
 
 *Existing infrastructure covers framework installation — Vitest already configured.*
 
