@@ -177,10 +177,10 @@ Plans:
   1. TabRuntimeManager.getOrCreate() is called from production tab creation paths, creating a per-tab ManagedRuntime
   2. disposeAll() on app quit disposes all active per-tab runtimes (not a no-op on empty HashMap)
   3. Per-tab CLI process isolation flow completes end-to-end: tab create → getOrCreate → per-tab runtime → dispose on quit
-**Plans:** 0 plans (run /gsd:plan-phase 07 to break down)
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD
+- [ ] 07-01-PLAN.md — Wire TabRuntimeManager into createTab handler and startup initialization
 
 ## Progress
 
@@ -195,4 +195,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 4. Session Reconstruction | 3/3 | Complete   | 2026-03-26 |
 | 5. Renderer Integration | 0/3 | Planning complete | - |
 | 6. Project Management UI | 2/2 | Complete | 2026-03-29 |
-| 7. Per-Tab CLI Isolation | 0/0 | Gap closure | - |
+| 7. Per-Tab CLI Isolation | 0/1 | Planning complete | - |
