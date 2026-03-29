@@ -38,3 +38,14 @@ export class RemoveProjectParams extends Schema.Class<RemoveProjectParams>(
 )({
   id: Schema.Number,
 }) {}
+
+export class UpdateTabParams extends Schema.Class<UpdateTabParams>(
+  "UpdateTabParams",
+)({
+  id: Schema.Number,
+  cwd: Schema.optional(Schema.String),
+  display_label: Schema.optional(Schema.String),
+  git_branch: Schema.optional(Schema.String),
+  project_id: Schema.optional(Schema.Number),
+  session_id: Schema.optional(Schema.String),
+}) {}

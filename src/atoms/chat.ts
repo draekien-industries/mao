@@ -14,6 +14,7 @@ import {
 } from "@/services/claude-cli/events";
 import { QueryParams, ResumeParams } from "@/services/claude-cli/params";
 import { ClaudeCli } from "@/services/claude-cli/service-definition";
+import { RendererRpcClient } from "@/services/claude-rpc/client";
 import { annotations } from "@/services/diagnostics";
 import { appRuntime } from "./runtime";
 
@@ -128,6 +129,7 @@ export const sendMessageAtom = appRuntime.fn(
       ctx.set(activeStreamCountAtom, ctx(activeStreamCountAtom) + 1);
 
       const cli = yield* ClaudeCli;
+      const rpcClient = yield* RendererRpcClient;
       const currentSessionId = ctx(sessionIdAtom(tabId));
       const cwd = ctx(cwdAtom(tabId));
 
@@ -142,12 +144,29 @@ export const sendMessageAtom = appRuntime.fn(
         : cli.query(new QueryParams({ prompt, cwd: cwd || undefined }));
 
       yield* Stream.runForEach(stream, (event) =>
-        Effect.sync(() => {
+        Effect.gen(function* () {
           const prevEvents = ctx(eventsAtom(tabId));
           ctx.set(eventsAtom(tabId), [...prevEvents, event]);
 
           if (isSystemInit(event)) {
             ctx.set(sessionIdAtom(tabId), event.session_id);
+            // Persist session_id to Tab DB record on first message
+            if (currentSessionId === null) {
+              yield* rpcClient
+                .updateTab({
+                  id: Number(tabId),
+                  session_id: event.session_id,
+                })
+                .pipe(
+                  Effect.tapError((err) =>
+                    Effect.logError("Failed to persist session_id to tab").pipe(
+                      Effect.annotateLogs("error", String(err)),
+                      Effect.annotateLogs(annotations.tabId, tabId),
+                    ),
+                  ),
+                  Effect.catchAll(() => Effect.void),
+                );
+            }
             // Clear tool-input when new stream starts after tool approval
             ctx.set(toolInputAtom(tabId), false);
           } else if (isStreamEvent(event)) {

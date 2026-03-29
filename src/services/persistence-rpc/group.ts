@@ -11,6 +11,7 @@ import {
   ListTabsParams,
   ReconstructSessionParams,
   RemoveProjectParams,
+  UpdateTabParams,
 } from "./params";
 
 export class PersistenceRpcGroup extends RpcGroup.make(
@@ -42,6 +43,11 @@ export class PersistenceRpcGroup extends RpcGroup.make(
   Rpc.make("removeProject", {
     error: DatabaseQueryError,
     payload: RemoveProjectParams,
+    success: Schema.Void,
+  }),
+  Rpc.make("updateTab", {
+    error: DatabaseQueryError,
+    payload: UpdateTabParams,
     success: Schema.Void,
   }),
 ) {}

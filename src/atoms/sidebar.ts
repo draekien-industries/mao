@@ -64,26 +64,41 @@ export const loadProjectsAtom = appRuntime.fn((_: void, ctx: Atom.FnContext) =>
         // D-01: Hydrate active tab conversation on app start
         if (firstTab.session_id !== null) {
           ctx.set(sessionLoadingAtom, true);
-          const client = yield* RendererRpcClient;
-          yield* Effect.logDebug("Hydrating first tab session").pipe(
-            Effect.annotateLogs(annotations.tabId, String(firstTab.id)),
-            Effect.annotateLogs(annotations.sessionId, firstTab.session_id),
+          yield* Effect.gen(function* () {
+            const client = yield* RendererRpcClient;
+            yield* Effect.logDebug("Hydrating first tab session").pipe(
+              Effect.annotateLogs(annotations.tabId, String(firstTab.id)),
+              Effect.annotateLogs(
+                annotations.sessionId,
+                firstTab.session_id ?? "",
+              ),
+            );
+            const session = yield* client.reconstructSession({
+              sessionId: firstTab.session_id ?? "",
+            });
+            const tabKey = String(firstTab.id);
+            // Pitfall 4: Set messages FIRST, then clear loading state
+            ctx.set(
+              messagesAtom(tabKey),
+              session.messages.map((m) => ({
+                content: m.content,
+                role: m.role,
+                ...(m.toolUseId !== undefined
+                  ? { toolUseId: m.toolUseId }
+                  : {}),
+                ...(m.isError !== undefined ? { isError: m.isError } : {}),
+              })),
+            );
+            ctx.set(sessionIdAtom(tabKey), session.sessionId);
+          }).pipe(
+            Effect.tapError((cause) =>
+              Effect.logError("First tab hydration failed").pipe(
+                Effect.annotateLogs("error", String(cause)),
+                Effect.annotateLogs(annotations.tabId, String(firstTab.id)),
+              ),
+            ),
+            Effect.catchAll(() => Effect.void),
           );
-          const session = yield* client.reconstructSession({
-            sessionId: firstTab.session_id,
-          });
-          const tabKey = String(firstTab.id);
-          // Pitfall 4: Set messages FIRST, then clear loading state
-          ctx.set(
-            messagesAtom(tabKey),
-            session.messages.map((m) => ({
-              content: m.content,
-              role: m.role,
-              ...(m.toolUseId !== undefined ? { toolUseId: m.toolUseId } : {}),
-              ...(m.isError !== undefined ? { isError: m.isError } : {}),
-            })),
-          );
-          ctx.set(sessionIdAtom(tabKey), session.sessionId);
           ctx.set(sessionLoadingAtom, false);
         }
       }

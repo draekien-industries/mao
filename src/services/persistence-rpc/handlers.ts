@@ -2,7 +2,7 @@ import { Effect } from "effect";
 import { ProjectCreate } from "../database/project-store/schemas";
 import { ProjectStore } from "../database/project-store/service-definition";
 import { SessionReconstructor } from "../database/session-reconstructor/service-definition";
-import { TabCreate } from "../database/tab-store/schemas";
+import { TabCreate, TabUpdate } from "../database/tab-store/schemas";
 import { TabStore } from "../database/tab-store/service-definition";
 import { PersistenceRpcGroup } from "./group";
 
@@ -37,6 +37,17 @@ export const PersistenceRpcHandlers = PersistenceRpcGroup.toLayer(
       reconstructSession: ({ sessionId }) =>
         reconstructor.reconstruct(sessionId),
       removeProject: ({ id }) => projectStore.remove(id),
+      updateTab: ({ id, ...fields }) =>
+        tabStore.update(
+          id,
+          new TabUpdate({
+            cwd: fields.cwd,
+            display_label: fields.display_label,
+            git_branch: fields.git_branch,
+            project_id: fields.project_id,
+            session_id: fields.session_id,
+          }),
+        ),
     };
   }),
 );
