@@ -96,7 +96,7 @@ export const tabStatusAtom = Atom.family((tabId: string) =>
     if (unread) return "unread" as const;
     if (streaming) return "streaming" as const;
     return "idle" as const;
-  }),
+  }).pipe(Atom.keepAlive),
 );
 
 // --- Send message action atom ---
