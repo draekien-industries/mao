@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to plan
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-03-29T01:26:49.091Z"
+stopped_at: "Checkpoint: 05-03-PLAN.md Task 3 (human-verify pending)"
+last_updated: "2026-03-29T01:47:27.330Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 10
   completed_phases: 8
-  total_plans: 25
-  completed_plans: 24
+  total_plans: 28
+  completed_plans: 26
 ---
 
 # Project State
@@ -65,6 +65,7 @@ Plan: Not started
 | Phase 04.5 P01 | 2min | 1 tasks | 3 files |
 | Phase 05 P01 | 5min | 2 tasks | 8 files |
 | Phase 05 P02 | 5min | 3 tasks | 5 files |
+| Phase 05 P03 | 11min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,7 @@ Recent decisions affecting current work:
 - [Phase 05]: Tool result events persisted with eventType 'user' matching CLI event type field
 - [Phase 05]: Used ManagedRuntime.make(Layer.empty) as scaffold for per-tab runtimes; real ClaudeCliLive wiring deferred
 - [Phase 05]: Used Cause.UnknownException for typed catch in tryPromise disposal calls
+- [Phase 05]: Test hydration atoms via test-specific Atom.runtime with mock RendererRpcClient
 
 ### Pending Todos
 
@@ -130,5 +132,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last activity: 2026-03-28
-Stopped at: Completed 05-02-PLAN.md
+Stopped at: Checkpoint: 05-03-PLAN.md Task 3 (human-verify pending)
 Resume file: None
