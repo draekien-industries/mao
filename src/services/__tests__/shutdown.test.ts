@@ -53,7 +53,7 @@ describe("Shutdown disposal ordering", () => {
     const failingManagerLayer = Layer.succeed(TabRuntimeManager, {
       getOrCreate: () => Effect.die("not used"),
       dispose: () => Effect.die("not used"),
-      disposeAll: () => Effect.fail(new Error("disposal failure")),
+      disposeAll: () => Effect.die(new Error("disposal failure")),
     });
 
     const mockRuntimeDispose = async () => {
