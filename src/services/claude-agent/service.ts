@@ -9,7 +9,7 @@ import {
   ClaudeAgentSpawnError,
 } from "./errors";
 import { SDKMessage } from "./events";
-import type { ContinueParams, QueryParams, ResumeParams } from "./params";
+import { ContinueParams, QueryParams, ResumeParams } from "./params";
 import { ClaudeAgent } from "./service-definition";
 
 type AnyParams = QueryParams | ResumeParams | ContinueParams;
@@ -41,13 +41,11 @@ const buildOptions = (
   }
   if (params.max_turns !== undefined) options.maxTurns = params.max_turns;
 
-  if (kind === "query") {
-    const q = params as QueryParams;
-    if (q.session_id !== undefined) options.sessionId = q.session_id;
-  } else if (kind === "resume") {
-    const r = params as ResumeParams;
-    options.resume = r.session_id;
-    if (r.fork === true) options.forkSession = true;
+  if (kind === "query" && params instanceof QueryParams) {
+    if (params.session_id !== undefined) options.sessionId = params.session_id;
+  } else if (kind === "resume" && params instanceof ResumeParams) {
+    options.resume = params.session_id;
+    if (params.fork === true) options.forkSession = true;
   } else {
     options.continue = true;
   }
@@ -67,6 +65,12 @@ const runStream = (
     Effect.gen(function* () {
       const auth = yield* ClaudeAgentAuth;
       const token = yield* auth.getToken.pipe(
+        Effect.tapError((err) =>
+          Effect.logError("Auth token missing").pipe(
+            Effect.annotateLogs("error", err.message),
+            Effect.annotateLogs(annotations.operation, kind),
+          ),
+        ),
         Effect.mapError(
           (err) =>
             new ClaudeAgentSpawnError({
