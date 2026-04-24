@@ -1,12 +1,11 @@
 import { Schema } from "effect";
 import {
-  AssistantMessageEvent,
-  ResultEvent,
-  SystemInitEvent,
-  SystemRetryEvent,
-  ToolResultEvent,
-  UnknownEvent,
-} from "../../claude-cli/events";
+  SDKAssistantMessage,
+  SDKResultMessage,
+  SDKSystemInitMessage,
+  SDKUnknownMessage,
+  SDKUserMessage,
+} from "../../claude-agent/events";
 
 export class UserMessageEvent extends Schema.Class<UserMessageEvent>(
   "UserMessageEvent",
@@ -15,18 +14,13 @@ export class UserMessageEvent extends Schema.Class<UserMessageEvent>(
   prompt: Schema.String,
 }) {}
 
-// D-02: Separate StoredEvent union keeps ClaudeEvent pure
-// D-01: UserMessageEvent stores prompt text only; timestamp from created_at column
-// Note: StreamEventMessage excluded -- never stored (Phase 3 buffers and discards them)
-// UnknownEvent must be last -- catchall for unknown types
 export const StoredEvent = Schema.Union(
-  SystemInitEvent,
-  SystemRetryEvent,
-  AssistantMessageEvent,
-  ResultEvent,
+  SDKSystemInitMessage,
+  SDKAssistantMessage,
+  SDKResultMessage,
   UserMessageEvent,
-  ToolResultEvent,
-  UnknownEvent,
+  SDKUserMessage,
+  SDKUnknownMessage,
 );
 export type StoredEvent = typeof StoredEvent.Type;
 

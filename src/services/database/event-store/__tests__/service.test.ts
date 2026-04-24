@@ -2,15 +2,51 @@ import type { SqlClient as SqlClientNamespace } from "@effect/sql";
 import { SqlClient } from "@effect/sql";
 import { Effect, Layer, Schema } from "effect";
 import { describe, expect, it } from "vitest";
-import { ResultEvent, SystemInitEvent } from "../../../claude-cli/events";
+import {
+  SDKResultMessage,
+  SDKSystemInitMessage,
+  Usage,
+} from "../../../claude-agent/events";
 import { Database } from "../../service-definition";
 import { isUserMessage, UserMessageEvent } from "../schemas";
 import { makeEventStoreLive } from "../service";
 import { EventStore } from "../service-definition";
 
-const encodeSystemInit = Schema.encodeSync(Schema.parseJson(SystemInitEvent));
-const encodeResult = Schema.encodeSync(Schema.parseJson(ResultEvent));
+const encodeSystemInit = Schema.encodeSync(
+  Schema.parseJson(SDKSystemInitMessage),
+);
+const encodeResult = Schema.encodeSync(Schema.parseJson(SDKResultMessage));
 const encodeUserMessage = Schema.encodeSync(Schema.parseJson(UserMessageEvent));
+
+const systemInitFixture = (
+  sessionId: string,
+  uuid: string,
+): SDKSystemInitMessage =>
+  new SDKSystemInitMessage({
+    type: "system",
+    subtype: "init",
+    uuid,
+    session_id: sessionId,
+    tools: [],
+    model: "claude-sonnet-4-6",
+    permissionMode: "default",
+    cwd: "/home/user",
+    apiKeySource: "user",
+  });
+
+const resultFixture = (sessionId: string, uuid: string): SDKResultMessage =>
+  new SDKResultMessage({
+    type: "result",
+    subtype: "success",
+    uuid,
+    session_id: sessionId,
+    is_error: false,
+    duration_ms: 100,
+    duration_api_ms: 90,
+    num_turns: 1,
+    total_cost_usd: 0.001,
+    usage: new Usage({ input_tokens: 10, output_tokens: 5 }),
+  });
 
 // In-memory event store for mocking the SQL layer
 interface InMemoryEvent {
@@ -125,12 +161,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-1",
           "system",
-          encodeSystemInit({
-            type: "system",
-            subtype: "init",
-            session_id: "session-1",
-            uuid: "u1",
-          }),
+          encodeSystemInit(systemInitFixture("session-1", "u1")),
         );
         const events = yield* store.getBySession("session-1");
         return events;
@@ -148,24 +179,12 @@ describe("EventStore", () => {
         yield* store.append(
           "session-seq",
           "system",
-          encodeSystemInit({
-            type: "system",
-            subtype: "init",
-            session_id: "session-seq",
-            uuid: "u1",
-          }),
+          encodeSystemInit(systemInitFixture("session-seq", "u1")),
         );
         yield* store.append(
           "session-seq",
           "result",
-          encodeResult({
-            type: "result",
-            subtype: "success",
-            result: "done",
-            is_error: false,
-            session_id: "session-seq",
-            uuid: "u2",
-          }),
+          encodeResult(resultFixture("session-seq", "u2")),
         );
         const events = yield* store.getBySession("session-seq");
         return events;
@@ -204,12 +223,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-order",
           "system",
-          encodeSystemInit({
-            type: "system",
-            subtype: "init",
-            session_id: "session-order",
-            uuid: "u1",
-          }),
+          encodeSystemInit(systemInitFixture("session-order", "u1")),
         );
         yield* store.append(
           "session-order",
@@ -219,14 +233,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-order",
           "result",
-          encodeResult({
-            type: "result",
-            subtype: "success",
-            result: "done",
-            is_error: false,
-            session_id: "session-order",
-            uuid: "u3",
-          }),
+          encodeResult(resultFixture("session-order", "u3")),
         );
         const events = yield* store.getBySession("session-order");
         return events;
@@ -258,12 +265,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-A",
           "system",
-          encodeSystemInit({
-            type: "system",
-            subtype: "init",
-            session_id: "session-A",
-            uuid: "uA",
-          }),
+          encodeSystemInit(systemInitFixture("session-A", "uA")),
         );
         yield* store.append(
           "session-B",
@@ -289,12 +291,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-purge",
           "system",
-          encodeSystemInit({
-            type: "system",
-            subtype: "init",
-            session_id: "session-purge",
-            uuid: "u1",
-          }),
+          encodeSystemInit(systemInitFixture("session-purge", "u1")),
         );
         yield* store.append(
           "session-purge",
@@ -317,12 +314,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-meta",
           "system",
-          encodeSystemInit({
-            type: "system",
-            subtype: "init",
-            session_id: "session-meta",
-            uuid: "u1",
-          }),
+          encodeSystemInit(systemInitFixture("session-meta", "u1")),
         );
         yield* store.append(
           "session-meta",
@@ -359,12 +351,7 @@ describe("EventStore", () => {
         yield* store.append(
           "session-keep",
           "system",
-          encodeSystemInit({
-            type: "system",
-            subtype: "init",
-            session_id: "session-keep",
-            uuid: "uKeep",
-          }),
+          encodeSystemInit(systemInitFixture("session-keep", "uKeep")),
         );
         yield* store.append(
           "session-remove",

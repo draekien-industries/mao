@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
-import { SystemInitEvent } from "../../../claude-cli/events";
+import { SDKSystemInitMessage } from "../../../claude-agent/events";
 import { isUserMessage, StoredEvent, UserMessageEvent } from "../schemas";
 
 describe("UserMessageEvent", () => {
@@ -23,12 +23,17 @@ describe("UserMessageEvent", () => {
 });
 
 describe("StoredEvent", () => {
-  it("decodes a SystemInitEvent payload", () => {
+  it("decodes a SDKSystemInitMessage payload", () => {
     const result = Schema.decodeUnknownSync(StoredEvent)({
       type: "system",
       subtype: "init",
-      session_id: "s1",
       uuid: "u1",
+      session_id: "s1",
+      tools: [],
+      model: "claude-sonnet-4-6",
+      permissionMode: "default",
+      cwd: "/home/user",
+      apiKeySource: "user",
     });
     expect(result.type).toBe("system");
   });
@@ -58,12 +63,17 @@ describe("isUserMessage", () => {
     expect(isUserMessage(event)).toBe(true);
   });
 
-  it("returns false for a SystemInitEvent instance", () => {
-    const event = new SystemInitEvent({
+  it("returns false for a SDKSystemInitMessage instance", () => {
+    const event = new SDKSystemInitMessage({
       type: "system",
       subtype: "init",
-      session_id: "s1",
       uuid: "u1",
+      session_id: "s1",
+      tools: [],
+      model: "claude-sonnet-4-6",
+      permissionMode: "default",
+      cwd: "/home/user",
+      apiKeySource: "user",
     });
     expect(isUserMessage(event)).toBe(false);
   });

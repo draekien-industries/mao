@@ -11,6 +11,8 @@ import {
 } from "./schema";
 import { Database } from "./service-definition";
 
+const SCHEMA_VERSION = 5;
+
 const integrityCheck = (sql: SqlClient.SqlClient) =>
   Effect.gen(function* () {
     const result = yield* sql.unsafe<{ quick_check: string }>(
@@ -28,8 +30,32 @@ const integrityCheck = (sql: SqlClient.SqlClient) =>
     });
   });
 
+const migrateEventsTable = (sql: SqlClient.SqlClient) =>
+  Effect.gen(function* () {
+    const [{ user_version: version }] = yield* sql.unsafe<{
+      user_version: number;
+    }>("PRAGMA user_version");
+
+    yield* Effect.logInfo(`Database schema version: ${version}`);
+
+    if (version < SCHEMA_VERSION) {
+      yield* Effect.logInfo(
+        `Migrating events table to SDK schema (v${SCHEMA_VERSION})`,
+      );
+      yield* sql.unsafe("DROP TABLE IF EXISTS events");
+      yield* sql.unsafe("DROP INDEX IF EXISTS idx_events_session_id");
+      yield* sql.unsafe(EVENTS_TABLE_SQL);
+      yield* sql.unsafe(EVENTS_SESSION_INDEX_SQL);
+      yield* Effect.logInfo("Migrated events table to SDK schema (v5)");
+    }
+
+    yield* sql.unsafe(`PRAGMA user_version = ${SCHEMA_VERSION}`);
+  });
+
 const bootstrapSchema = (sql: SqlClient.SqlClient) =>
   Effect.gen(function* () {
+    yield* migrateEventsTable(sql);
+
     yield* sql.unsafe(EVENTS_TABLE_SQL);
     yield* Effect.logDebug("Events table created");
 
