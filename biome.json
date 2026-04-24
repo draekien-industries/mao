@@ -44,7 +44,8 @@
       "!!**/android/build",
       "!!**/ios/build",
       "!!**/DerivedData/**/*",
-      "!src/components/ui"
+      "!src/components/ui",
+      "!!.claude/worktrees"
     ]
   },
   "formatter": {
