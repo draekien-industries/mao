@@ -2,9 +2,9 @@ import { Effect, Layer } from "effect";
 import { extractAssistantText } from "@/lib/extract-assistant-text";
 import {
   isAssistantMessage,
-  isSystemInit,
-  isToolResult,
-} from "../../claude-cli/events";
+  isUserMessage as isSDKUserMessage,
+  isSystemInitMessage,
+} from "../../claude-agent/events";
 import { annotations } from "../../diagnostics";
 import { isUserMessage } from "../event-store/schemas";
 import { EventStore } from "../event-store/service-definition";
@@ -27,7 +27,7 @@ export const makeSessionReconstructorLive = () =>
           const messages: Array<ChatMessage> = [];
 
           for (const row of rows) {
-            if (isSystemInit(row.event)) {
+            if (isSystemInitMessage(row.event)) {
               extractedSessionId = row.event.session_id;
             } else if (isUserMessage(row.event)) {
               messages.push(
@@ -47,7 +47,7 @@ export const makeSessionReconstructorLive = () =>
                   role: "assistant",
                 }),
               );
-            } else if (isToolResult(row.event)) {
+            } else if (isSDKUserMessage(row.event)) {
               // D-10: Tool results as separate message blocks
               const contentText = row.event.message.content
                 .map((block) => {

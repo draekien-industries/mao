@@ -1,16 +1,14 @@
 import { Effect, Layer, Schema } from "effect";
 import { describe, expect, it } from "vitest";
 import {
-  AssistantMessageEvent,
-  ResultEvent,
-  SystemInitEvent,
-  SystemRetryEvent,
-  TextBlock,
+  SDKAssistantMessage,
+  SDKResultMessage,
+  SDKSystemInitMessage,
+  SDKUnknownMessage,
+  SDKUserMessage,
   ToolResultBlock,
-  ToolResultEvent,
-  UnknownEvent,
   Usage,
-} from "../../../claude-cli/events";
+} from "../../../claude-agent/events";
 import type { StoredEventWithMeta } from "../../event-store/schemas";
 import { UserMessageEvent } from "../../event-store/schemas";
 import { EventStore } from "../../event-store/service-definition";
@@ -19,14 +17,17 @@ import { SessionReconstructor } from "../service-definition";
 
 // --- Fixtures ---
 
-const testUsage = new Usage({});
-
-const makeSystemInit = (sessionId: string): SystemInitEvent =>
-  new SystemInitEvent({
+const makeSystemInit = (sessionId: string): SDKSystemInitMessage =>
+  new SDKSystemInitMessage({
     type: "system",
     subtype: "init",
     session_id: sessionId,
     uuid: "u-init",
+    tools: [],
+    model: "claude-sonnet-4-6",
+    permissionMode: "default",
+    cwd: "/tmp",
+    apiKeySource: "env",
   });
 
 const makeUserMessage = (prompt: string): UserMessageEvent =>
@@ -35,49 +36,48 @@ const makeUserMessage = (prompt: string): UserMessageEvent =>
     prompt,
   });
 
-const makeAssistantMessage = (text: string): AssistantMessageEvent =>
-  Schema.decodeUnknownSync(AssistantMessageEvent)({
+const makeAssistantMessage = (text: string): SDKAssistantMessage =>
+  Schema.decodeUnknownSync(SDKAssistantMessage)({
     type: "assistant",
+    uuid: "u-asst",
+    session_id: "session-1",
+    parent_tool_use_id: null,
     message: {
       id: "msg-1",
       type: "message",
       role: "assistant",
       content: [{ type: "text", text }],
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       stop_reason: "end_turn",
       stop_sequence: null,
-      usage: testUsage,
+      usage: { input_tokens: 10, output_tokens: 3 },
     },
-    uuid: "u-asst",
-    session_id: "session-1",
   });
 
-const makeResult = (): ResultEvent =>
-  new ResultEvent({
+const makeResult = (): SDKResultMessage =>
+  new SDKResultMessage({
     type: "result",
     subtype: "success",
-    result: "done",
-    is_error: false,
-    session_id: "session-1",
     uuid: "u-result",
-  });
-
-const makeRetry = (): SystemRetryEvent =>
-  new SystemRetryEvent({
-    type: "system",
-    subtype: "api_retry",
-    attempt: 1,
-    max_retries: 3,
-    retry_delay_ms: 1000,
-    error_status: 500,
-    error: "server error",
-    uuid: "u-retry",
     session_id: "session-1",
+    is_error: false,
+    duration_ms: 100,
+    duration_api_ms: 80,
+    num_turns: 1,
+    total_cost_usd: 0.001,
+    usage: new Usage({ input_tokens: 10, output_tokens: 3 }),
   });
 
-const makeUnknown = (): UnknownEvent =>
-  new UnknownEvent({
-    type: "tool_result",
+const makeRetry = (): SDKUnknownMessage =>
+  new SDKUnknownMessage({
+    type: "system",
+    session_id: "session-1",
+    uuid: "u-retry",
+  });
+
+const makeUnknown = (): SDKUnknownMessage =>
+  new SDKUnknownMessage({
+    type: "unknown_type",
   });
 
 const toRow = (
@@ -139,7 +139,7 @@ describe("SessionReconstructor", () => {
     expect(result.messages[1].createdAt).toBe("2026-01-01T00:00:02Z");
   });
 
-  it("returns empty messages for SystemInitEvent-only session", async () => {
+  it("returns empty messages for SDKSystemInitMessage-only session", async () => {
     const rows: StoredEventWithMeta[] = [toRow(makeSystemInit("init-only"), 1)];
 
     const result = await runTest(
@@ -215,7 +215,7 @@ describe("SessionReconstructor", () => {
     });
   });
 
-  it("skips SystemRetryEvent (not in messages)", async () => {
+  it("skips SDKUnknownMessage (retry variant) (not in messages)", async () => {
     const rows: StoredEventWithMeta[] = [
       toRow(makeSystemInit("retry-session"), 1),
       toRow(makeRetry(), 2),
@@ -236,7 +236,7 @@ describe("SessionReconstructor", () => {
     expect(result.messages[1].role).toBe("assistant");
   });
 
-  it("skips UnknownEvent (not in messages)", async () => {
+  it("skips SDKUnknownMessage (not in messages)", async () => {
     const rows: StoredEventWithMeta[] = [
       toRow(makeSystemInit("unknown-session"), 1),
       toRow(makeUserMessage("prompt"), 2, "2026-01-01T00:00:01Z"),
@@ -275,13 +275,13 @@ describe("SessionReconstructor", () => {
     expect(result.messages[0].createdAt).toBe("2026-03-15T10:30:00Z");
   });
 
-  it("folds ToolResultEvent into ChatMessage with role tool_result", async () => {
-    const toolResult = new ToolResultEvent({
+  it("folds SDKUserMessage into ChatMessage with role tool_result", async () => {
+    const toolResult = new SDKUserMessage({
       type: "user",
+      uuid: "u-tr",
       session_id: "session-1",
+      parent_tool_use_id: "toolu_abc",
       message: {
-        id: "msg-tr",
-        type: "message",
         role: "user",
         content: [
           new ToolResultBlock({
@@ -315,13 +315,13 @@ describe("SessionReconstructor", () => {
     expect(toolMsg.toolUseId).toBe("toolu_abc");
   });
 
-  it("folds ToolResultEvent with is_error into ChatMessage with isError true", async () => {
-    const toolResult = new ToolResultEvent({
+  it("folds SDKUserMessage with is_error into ChatMessage with isError true", async () => {
+    const toolResult = new SDKUserMessage({
       type: "user",
+      uuid: "u-tr-err",
       session_id: "session-1",
+      parent_tool_use_id: "toolu_err",
       message: {
-        id: "msg-tr-err",
-        type: "message",
         role: "user",
         content: [
           new ToolResultBlock({
@@ -354,12 +354,12 @@ describe("SessionReconstructor", () => {
   });
 
   it("mixed event sequence produces correct message order", async () => {
-    const toolResult = new ToolResultEvent({
+    const toolResult = new SDKUserMessage({
       type: "user",
+      uuid: "u-tr-mixed",
       session_id: "session-1",
+      parent_tool_use_id: "toolu_mix",
       message: {
-        id: "msg-tr-mixed",
-        type: "message",
         role: "user",
         content: [
           new ToolResultBlock({
