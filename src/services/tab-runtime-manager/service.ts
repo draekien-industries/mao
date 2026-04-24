@@ -28,7 +28,7 @@ export const makeTabRuntimeManagerLive = () =>
           }
 
           // Scaffold: creates an empty ManagedRuntime for now.
-          // Real per-tab ClaudeCliLive wiring is future work.
+          // Real per-tab ClaudeAgentLive wiring is future work.
           const managedRuntime = ManagedRuntime.make(Layer.empty);
 
           const tabRuntime: TabRuntime = {
