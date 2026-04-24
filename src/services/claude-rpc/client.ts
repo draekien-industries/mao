@@ -64,7 +64,7 @@ const ElectronClientProtocol = Layer.scoped(
 );
 
 // Single shared RPC client — one protocol instance, one onMessage listener.
-// Both ClaudeCli and RendererRpcClient derive from this same client.
+// Both ClaudeAgent and RendererRpcClient derive from this same client.
 const _makeClient = RpcClient.make(MergedRpcGroup);
 type MergedRpcClient = Effect.Effect.Success<typeof _makeClient>;
 
