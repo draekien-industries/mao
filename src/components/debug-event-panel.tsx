@@ -1,17 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import type { ClaudeEvent } from "@/services/claude-cli/events";
+import type { SDKMessage } from "@/services/claude-agent/events";
 import {
   isAssistantMessage,
   isContentBlockDelta,
-  isResult,
-  isStreamEvent,
-  isSystemInit,
-  isSystemRetry,
+  isPartialAssistantMessage,
+  isResultMessage,
+  isSystemInitMessage,
   isTextDelta,
-} from "@/services/claude-cli/events";
+} from "@/services/claude-agent/events";
 
-function EventCard({ event }: { event: ClaudeEvent }) {
+function EventCard({ event }: { event: SDKMessage }) {
   const [expanded, setExpanded] = useState(false);
 
   const { label, variant, summary } = describeEvent(event);
@@ -39,7 +38,7 @@ function EventCard({ event }: { event: ClaudeEvent }) {
           {summary}
         </span>
         <span className="ml-auto shrink-0 text-muted-foreground">
-          {expanded ? "\u25B4" : "\u25BE"}
+          {expanded ? "▴" : "▾"}
         </span>
       </button>
       {expanded && (
@@ -53,26 +52,19 @@ function EventCard({ event }: { event: ClaudeEvent }) {
 
 type EventVariant = "system" | "stream" | "assistant" | "result" | "unknown";
 
-function describeEvent(event: ClaudeEvent): {
+function describeEvent(event: SDKMessage): {
   label: string;
   variant: EventVariant;
   summary: string;
 } {
-  if (isSystemInit(event)) {
+  if (isSystemInitMessage(event)) {
     return {
       label: "SystemInit",
       variant: "system",
       summary: `session: ${event.session_id.slice(0, 12)}...`,
     };
   }
-  if (isSystemRetry(event)) {
-    return {
-      label: "Retry",
-      variant: "system",
-      summary: `attempt ${event.attempt}/${event.max_retries}`,
-    };
-  }
-  if (isStreamEvent(event)) {
+  if (isPartialAssistantMessage(event)) {
     if (isContentBlockDelta(event.event) && isTextDelta(event.event.delta)) {
       const preview = event.event.delta.text.slice(0, 40);
       return {
@@ -88,12 +80,12 @@ function describeEvent(event: ClaudeEvent): {
     return {
       label: "Assistant",
       variant: "assistant",
-      summary: `${blockCount} block${blockCount !== 1 ? "s" : ""} \u00B7 ${event.message.model}`,
+      summary: `${blockCount} block${blockCount !== 1 ? "s" : ""} · ${event.message.model}`,
     };
   }
-  if (isResult(event)) {
+  if (isResultMessage(event)) {
     const cost = event.total_cost_usd
-      ? ` \u00B7 $${event.total_cost_usd.toFixed(4)}`
+      ? ` · $${event.total_cost_usd.toFixed(4)}`
       : "";
     return {
       label: event.is_error ? "Error" : "Result",
@@ -109,7 +101,7 @@ export function DebugEventPanel({
   eventCount,
   isOpen,
 }: {
-  events: ClaudeEvent[];
+  events: SDKMessage[];
   eventCount: number;
   isOpen: boolean;
 }) {

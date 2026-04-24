@@ -2,18 +2,18 @@ import { Atom } from "@effect-atom/atom-react";
 import { Effect, Stream } from "effect";
 import { activeTabIdAtom } from "@/atoms/sidebar";
 import { extractAssistantText } from "@/lib/extract-assistant-text";
-import { formatClaudeCliError } from "@/services/claude-cli/errors";
-import type { ClaudeEvent } from "@/services/claude-cli/events";
+import { formatClaudeAgentError } from "@/services/claude-agent/errors";
+import type { SDKMessage } from "@/services/claude-agent/events";
 import {
   isAssistantMessage,
   isContentBlockDelta,
-  isResult,
-  isStreamEvent,
-  isSystemInit,
+  isPartialAssistantMessage,
+  isResultMessage,
+  isSystemInitMessage,
   isTextDelta,
-} from "@/services/claude-cli/events";
-import { QueryParams, ResumeParams } from "@/services/claude-cli/params";
-import { ClaudeCli } from "@/services/claude-cli/service-definition";
+} from "@/services/claude-agent/events";
+import { QueryParams, ResumeParams } from "@/services/claude-agent/params";
+import { ClaudeAgent } from "@/services/claude-agent/service-definition";
 import { RendererRpcClient } from "@/services/claude-rpc/client";
 import { annotations } from "@/services/diagnostics";
 import { appRuntime } from "./runtime";
@@ -50,7 +50,7 @@ export const errorAtom = Atom.family((_tabId: string) =>
 );
 
 export const eventsAtom = Atom.family((_tabId: string) =>
-  Atom.make<ReadonlyArray<ClaudeEvent>>([]).pipe(Atom.keepAlive),
+  Atom.make<ReadonlyArray<SDKMessage>>([]).pipe(Atom.keepAlive),
 );
 
 // --- New per-tab state atoms for multi-tab orchestration ---
@@ -127,27 +127,27 @@ export const sendMessageAtom = Atom.family((tabId: string) =>
         // D-10, D-12: Track concurrent stream count
         ctx.set(activeStreamCountAtom, ctx(activeStreamCountAtom) + 1);
 
-        const cli = yield* ClaudeCli;
+        const agent = yield* ClaudeAgent;
         const rpcClient = yield* RendererRpcClient;
         const currentSessionId = ctx(sessionIdAtom(tabId));
         const cwd = ctx(cwdAtom(tabId));
 
         const stream = currentSessionId
-          ? cli.resume(
+          ? agent.resume(
               new ResumeParams({
                 prompt,
                 session_id: currentSessionId,
                 cwd: cwd || undefined,
               }),
             )
-          : cli.query(new QueryParams({ prompt, cwd: cwd || undefined }));
+          : agent.query(new QueryParams({ prompt, cwd: cwd || undefined }));
 
         yield* Stream.runForEach(stream, (event) =>
           Effect.gen(function* () {
             const prevEvents = ctx(eventsAtom(tabId));
             ctx.set(eventsAtom(tabId), [...prevEvents, event]);
 
-            if (isSystemInit(event)) {
+            if (isSystemInitMessage(event)) {
               ctx.set(sessionIdAtom(tabId), event.session_id);
               // Persist session_id to Tab DB record on first message
               if (currentSessionId === null) {
@@ -170,7 +170,7 @@ export const sendMessageAtom = Atom.family((tabId: string) =>
               }
               // Clear tool-input when new stream starts after tool approval
               ctx.set(toolInputAtom(tabId), false);
-            } else if (isStreamEvent(event)) {
+            } else if (isPartialAssistantMessage(event)) {
               if (
                 isContentBlockDelta(event.event) &&
                 isTextDelta(event.event.delta)
@@ -202,7 +202,7 @@ export const sendMessageAtom = Atom.family((tabId: string) =>
               if (String(activeTab) !== tabId) {
                 ctx.set(unreadAtom(tabId), true);
               }
-            } else if (isResult(event)) {
+            } else if (isResultMessage(event)) {
               ctx.set(isStreamingAtom(tabId), false);
               ctx.set(toolInputAtom(tabId), false);
             }
@@ -222,10 +222,10 @@ export const sendMessageAtom = Atom.family((tabId: string) =>
         Effect.catchAll((err) =>
           Effect.gen(function* () {
             yield* Effect.logError("Send message failed").pipe(
-              Effect.annotateLogs("error", formatClaudeCliError(err)),
+              Effect.annotateLogs("error", formatClaudeAgentError(err)),
               Effect.annotateLogs(annotations.tabId, tabId),
             );
-            ctx.set(errorAtom(tabId), formatClaudeCliError(err));
+            ctx.set(errorAtom(tabId), formatClaudeAgentError(err));
             ctx.set(isStreamingAtom(tabId), false);
           }),
         ),

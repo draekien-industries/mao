@@ -2,14 +2,14 @@ import { RpcClient } from "@effect/rpc";
 import { RpcClientError } from "@effect/rpc/RpcClientError";
 import type { FromServerEncoded } from "@effect/rpc/RpcMessage";
 import { Context, Effect, Layer, Runtime, Stream } from "effect";
-import type { ClaudeCliError } from "../claude-cli/errors";
-import { ClaudeCliSpawnError } from "../claude-cli/errors";
+import type { ClaudeAgentError } from "../claude-agent/errors";
+import { ClaudeAgentSpawnError } from "../claude-agent/errors";
 import type {
   ContinueParams,
   QueryParams,
   ResumeParams,
-} from "../claude-cli/params";
-import { ClaudeCli } from "../claude-cli/service-definition";
+} from "../claude-agent/params";
+import { ClaudeAgent } from "../claude-agent/service-definition";
 import { annotations } from "../diagnostics";
 import { DialogRpcGroup } from "../dialog-rpc/group";
 import { GitRpcGroup } from "../git-rpc/group";
@@ -20,9 +20,11 @@ const MergedRpcGroup = ClaudeRpcGroup.merge(PersistenceRpcGroup)
   .merge(GitRpcGroup)
   .merge(DialogRpcGroup);
 
-const mapRpcError = (err: ClaudeCliError | RpcClientError): ClaudeCliError =>
+const mapRpcError = (
+  err: ClaudeAgentError | RpcClientError,
+): ClaudeAgentError =>
   err._tag === "RpcClientError"
-    ? new ClaudeCliSpawnError({
+    ? new ClaudeAgentSpawnError({
         message: `RPC transport error: ${err.message}`,
         cause: String(err.cause ?? "unknown"),
       })
@@ -75,11 +77,11 @@ const SharedClientLayer = Layer.scoped(RendererRpcClient, _makeClient).pipe(
   Layer.provide(ElectronClientProtocol),
 );
 
-export const ClaudeCliFromRpc = Layer.effect(
-  ClaudeCli,
+export const ClaudeAgentFromRpc = Layer.effect(
+  ClaudeAgent,
   Effect.gen(function* () {
-    yield* Effect.logInfo("ClaudeCliFromRpc layer constructed").pipe(
-      Effect.annotateLogs(annotations.service, "claude-cli-from-rpc"),
+    yield* Effect.logInfo("ClaudeAgentFromRpc layer constructed").pipe(
+      Effect.annotateLogs(annotations.service, "claude-agent-from-rpc"),
     );
     const client = yield* RendererRpcClient;
     return {

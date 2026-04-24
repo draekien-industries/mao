@@ -1,7 +1,7 @@
 import { RpcServer } from "@effect/rpc";
 import { Effect, Layer, Mailbox, Option, Runtime } from "effect";
 import { ipcMain } from "electron";
-import { ClaudeCli } from "../claude-cli/service-definition";
+import { ClaudeAgent } from "../claude-agent/service-definition";
 import { annotations } from "../diagnostics";
 import { DialogRpcGroup } from "../dialog-rpc/group";
 import { GitRpcGroup } from "../git-rpc/group";
@@ -15,8 +15,8 @@ const MergedRpcGroup = ClaudeRpcGroup.merge(PersistenceRpcGroup)
 
 export const ClaudeRpcHandlers = ClaudeRpcGroup.toLayer(
   Effect.gen(function* () {
-    const cli = yield* ClaudeCli;
-    return cli;
+    const agent = yield* ClaudeAgent;
+    return agent;
   }),
 );
 

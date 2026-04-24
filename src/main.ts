@@ -5,8 +5,9 @@ import { SqliteClient } from "@effect/sql-sqlite-node";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { app, BrowserWindow } from "electron";
 import started from "electron-squirrel-startup";
-import { makePersistentClaudeCliLive } from "./services/claude-cli/persistent/service";
-import { ClaudeCliLive } from "./services/claude-cli/service";
+import { makeClaudeAgentAuthLive } from "./services/claude-agent/auth";
+import { makePersistentClaudeAgentLive } from "./services/claude-agent/persistent/service";
+import { makeClaudeAgentLive } from "./services/claude-agent/service";
 import {
   ClaudeRpcHandlers,
   startRpcServer,
@@ -40,7 +41,9 @@ const SqliteLive = SqliteClient.layer({ filename: dbPath });
 const DatabaseLayer = makeDatabaseLive();
 const EventStoreLayer = makeEventStoreLive();
 const TabStoreLayer = makeTabStoreLive();
-const PersistentLayer = makePersistentClaudeCliLive();
+const ClaudeAgentAuthLayer = makeClaudeAgentAuthLive();
+const ClaudeAgentLive = makeClaudeAgentLive();
+const PersistentLayer = makePersistentClaudeAgentLive();
 const SessionReconstructorLayer = makeSessionReconstructorLive();
 const ProjectStoreLayer = makeProjectStoreLive();
 const GitServiceLayer = makeGitServiceLive();
@@ -54,7 +57,8 @@ const BaseLayer = ClaudeRpcHandlers.pipe(
   Layer.provideMerge(TabRuntimeManagerLayer),
   Layer.provideMerge(SessionReconstructorLayer),
   Layer.provideMerge(PersistentLayer),
-  Layer.provideMerge(ClaudeCliLive),
+  Layer.provideMerge(ClaudeAgentLive),
+  Layer.provideMerge(ClaudeAgentAuthLayer),
   Layer.provideMerge(GitServiceLayer),
   Layer.provideMerge(DialogServiceLayer),
   Layer.provideMerge(ProjectStoreLayer),
