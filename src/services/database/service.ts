@@ -46,22 +46,18 @@ const migrateEventsTable = (sql: SqlClient.SqlClient) =>
       yield* sql.unsafe("DROP INDEX IF EXISTS idx_events_session_id");
       yield* sql.unsafe(EVENTS_TABLE_SQL);
       yield* sql.unsafe(EVENTS_SESSION_INDEX_SQL);
-      yield* Effect.logInfo("Migrated events table to SDK schema (v5)");
+      yield* sql.unsafe(`PRAGMA user_version = ${SCHEMA_VERSION}`);
+      yield* Effect.logInfo(
+        `Migrated events table to SDK schema (v${SCHEMA_VERSION})`,
+      );
     }
-
-    yield* sql.unsafe(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   });
 
 const bootstrapSchema = (sql: SqlClient.SqlClient) =>
   Effect.gen(function* () {
     yield* migrateEventsTable(sql);
 
-    yield* sql.unsafe(EVENTS_TABLE_SQL);
-    yield* Effect.logDebug("Events table created");
-
-    yield* sql.unsafe(EVENTS_SESSION_INDEX_SQL);
-    yield* Effect.logDebug("Events session index created");
-
+    // Events table is managed by migrateEventsTable; only non-events tables here
     yield* sql.unsafe(TABS_TABLE_SQL);
     yield* Effect.logDebug("Tabs table created");
 

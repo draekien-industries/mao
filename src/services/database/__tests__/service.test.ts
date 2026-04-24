@@ -29,12 +29,18 @@ const healthyHandler = (sql: string) => {
   if (sql === "PRAGMA quick_check") {
     return Effect.succeed([{ quick_check: "ok" }]);
   }
+  if (sql === "PRAGMA user_version") {
+    return Effect.succeed([{ user_version: 0 }]);
+  }
   return Effect.succeed([]);
 };
 
 const corruptHandler = (sql: string) => {
   if (sql === "PRAGMA quick_check") {
     return Effect.succeed([{ quick_check: "bad" }]);
+  }
+  if (sql === "PRAGMA user_version") {
+    return Effect.succeed([{ user_version: 0 }]);
   }
   return Effect.succeed([]);
 };
@@ -107,6 +113,9 @@ describe("makeDatabaseLive", () => {
     const failOnCreateHandler = (sql: string) => {
       if (sql === "PRAGMA quick_check") {
         return Effect.succeed([{ quick_check: "ok" }]);
+      }
+      if (sql === "PRAGMA user_version") {
+        return Effect.succeed([{ user_version: 0 }]);
       }
       if (sql.includes("CREATE TABLE")) {
         return Effect.fail(
