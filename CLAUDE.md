@@ -6,6 +6,12 @@
 
 </code-style>
 
+<env>
+
+- `CLAUDE_CODE_OAUTH_TOKEN` — required at runtime; generate once with `claude setup-token` and export it in your shell or add to a local `.env` (gitignored)
+
+</env>
+
 <hints>
 
 - When working with React UI components, reference the `shadcn` skills

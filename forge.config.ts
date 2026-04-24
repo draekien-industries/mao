@@ -10,7 +10,10 @@ import type { ForgeConfig } from "@electron-forge/shared-types";
 
 const config: ForgeConfig = {
   packagerConfig: {
-    asar: true,
+    asar: {
+      // claude.exe bundled by @anthropic-ai/claude-agent-sdk must be executable outside ASAR
+      unpack: "**/node_modules/@anthropic-ai/claude-agent-sdk-win32-x64/**",
+    },
     prune: true,
     ignore: (file: string) => {
       if (!file) return false;

@@ -94,7 +94,7 @@ A local data persistence layer for the Mao Electron app, which manages multiple 
 
 - Node.js 24+ (based on host environment)
 - npm 11+
-- Claude CLI installed and available on PATH (the app spawns `claude` as a child process)
+- `CLAUDE_CODE_OAUTH_TOKEN` env var set before `npm start` (generate via `claude setup-token`; the SDK bundles its own `claude` binary — no PATH install required)
 - Windows (Squirrel installer)
 - macOS (ZIP archive)
 - Linux (DEB / RPM packages)
