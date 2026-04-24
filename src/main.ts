@@ -1,5 +1,6 @@
 import { mkdirSync } from "node:fs";
 import path from "node:path";
+import { PlatformConfigProvider } from "@effect/platform";
 import { NodeContext } from "@effect/platform-node";
 import { SqliteClient } from "@effect/sql-sqlite-node";
 import { Effect, Layer, ManagedRuntime } from "effect";
@@ -73,7 +74,17 @@ const LoggerLayer = app.isPackaged
   ? Layer.merge(ProdLogger, makeProdFileLogger(logFilePath))
   : DevLogger;
 
-const ServerLayer = BaseLayer.pipe(Layer.provide(LoggerLayer));
+const DotEnvLayer = app.isPackaged
+  ? Layer.empty
+  : PlatformConfigProvider.layerDotEnvAdd(path.resolve(".env")).pipe(
+      Layer.provide(NodeContext.layer),
+      Layer.catchAll(() => Layer.empty),
+    );
+
+const ServerLayer = BaseLayer.pipe(
+  Layer.provide(LoggerLayer),
+  Layer.provide(DotEnvLayer),
+);
 
 const runtime = ManagedRuntime.make(ServerLayer);
 
