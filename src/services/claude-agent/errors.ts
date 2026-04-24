@@ -27,7 +27,7 @@ export const formatClaudeAgentError = (err: ClaudeAgentError): string => {
     case "ClaudeAgentSpawnError":
       return `Failed to start Claude Agent: ${err.message}`;
     case "ClaudeAgentParseError":
-      return `Failed to parse SDK message: ${err.cause}`;
+      return `Failed to parse SDK message: ${err.raw}`;
     case "ClaudeAgentProcessError":
       return `Claude Agent failed: ${err.message}`;
   }
