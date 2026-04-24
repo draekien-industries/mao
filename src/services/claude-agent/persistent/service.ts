@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { Effect, Layer, Ref, Stream } from "effect";
+import { Effect, Layer, Option, Ref, Stream } from "effect";
 import type { DatabaseQueryError } from "../../database/errors";
 import { EventStore } from "../../database/event-store/service-definition";
 import { annotations } from "../../diagnostics";
@@ -113,33 +113,39 @@ export const makePersistentClaudeAgentLive = () =>
           );
         },
 
-        cont: (params: ContinueParams) => {
-          const sessionIdRef = Ref.unsafeMake("");
-          return inner.cont(params).pipe(
-            Stream.tap((event) =>
-              Effect.gen(function* () {
-                if (isSystemInitMessage(event)) {
-                  yield* Ref.set(sessionIdRef, event.session_id);
-                  yield* persist(store, event.session_id, "system", event);
-                  yield* persistUserMessage(
-                    store,
-                    event.session_id,
-                    params.prompt,
-                  );
-                  return;
-                }
-                const sid = yield* Ref.get(sessionIdRef);
-                if (sid === "") return;
-                if (isAssistantMessage(event))
-                  yield* persist(store, sid, "assistant", event);
-                else if (isResultMessage(event))
-                  yield* persist(store, sid, "result", event);
-                else if (isUserMessage(event))
-                  yield* persist(store, sid, "user", event);
-              }),
-            ),
-          );
-        },
+        cont: (params: ContinueParams) =>
+          Stream.unwrapScoped(
+            Effect.gen(function* () {
+              const sessionIdRef = yield* Ref.make(Option.none<string>());
+              return inner.cont(params).pipe(
+                Stream.tap((event) =>
+                  Effect.gen(function* () {
+                    if (isSystemInitMessage(event)) {
+                      yield* Ref.set(
+                        sessionIdRef,
+                        Option.some(event.session_id),
+                      );
+                      yield* persist(store, event.session_id, "system", event);
+                      yield* persistUserMessage(
+                        store,
+                        event.session_id,
+                        params.prompt,
+                      );
+                      return;
+                    }
+                    const sid = yield* Ref.get(sessionIdRef);
+                    if (Option.isNone(sid)) return;
+                    if (isAssistantMessage(event))
+                      yield* persist(store, sid.value, "assistant", event);
+                    else if (isResultMessage(event))
+                      yield* persist(store, sid.value, "result", event);
+                    else if (isUserMessage(event))
+                      yield* persist(store, sid.value, "user", event);
+                  }),
+                ),
+              );
+            }),
+          ),
       };
     }).pipe(
       Effect.annotateLogs(annotations.service, "persistent-claude-agent"),
