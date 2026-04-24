@@ -1,4 +1,4 @@
-import { Effect, Exit } from "effect";
+import { Effect, Either } from "effect";
 import { describe, expect, it } from "vitest";
 import { ClaudeAgentAuth, makeClaudeAgentAuthLive } from "../auth";
 
@@ -15,7 +15,8 @@ describe("ClaudeAgentAuth", () => {
       );
       expect(result).toBe("sk-ant-oat01-test");
     } finally {
-      process.env.CLAUDE_CODE_OAUTH_TOKEN = prev;
+      if (prev !== undefined) process.env.CLAUDE_CODE_OAUTH_TOKEN = prev;
+      else delete process.env.CLAUDE_CODE_OAUTH_TOKEN;
     }
   });
 
@@ -23,13 +24,16 @@ describe("ClaudeAgentAuth", () => {
     const prev = process.env.CLAUDE_CODE_OAUTH_TOKEN;
     delete process.env.CLAUDE_CODE_OAUTH_TOKEN;
     try {
-      const exit = await Effect.runPromiseExit(
+      const result = await Effect.runPromise(
         Effect.gen(function* () {
           const auth = yield* ClaudeAgentAuth;
           return yield* auth.getToken;
-        }).pipe(Effect.provide(makeClaudeAgentAuthLive())),
+        }).pipe(Effect.provide(makeClaudeAgentAuthLive()), Effect.either),
       );
-      expect(Exit.isFailure(exit)).toBe(true);
+      expect(Either.isLeft(result)).toBe(true);
+      if (Either.isLeft(result)) {
+        expect(result.left._tag).toBe("ClaudeAgentAuthMissing");
+      }
     } finally {
       if (prev !== undefined) process.env.CLAUDE_CODE_OAUTH_TOKEN = prev;
     }
