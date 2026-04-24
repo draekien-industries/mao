@@ -32,9 +32,10 @@ const integrityCheck = (sql: SqlClient.SqlClient) =>
 
 const migrateEventsTable = (sql: SqlClient.SqlClient) =>
   Effect.gen(function* () {
-    const [{ user_version: version }] = yield* sql.unsafe<{
-      user_version: number;
-    }>("PRAGMA user_version");
+    const rows = yield* sql.unsafe<{ user_version: number }>(
+      "PRAGMA user_version",
+    );
+    const version = rows[0]?.user_version ?? 0;
 
     yield* Effect.logInfo(`Database schema version: ${version}`);
 
@@ -55,7 +56,13 @@ const migrateEventsTable = (sql: SqlClient.SqlClient) =>
 
 const bootstrapSchema = (sql: SqlClient.SqlClient) =>
   Effect.gen(function* () {
-    yield* migrateEventsTable(sql);
+    yield* migrateEventsTable(sql).pipe(
+      Effect.tapError((err) =>
+        Effect.logError("Events table migration failed").pipe(
+          Effect.annotateLogs("cause", String(err)),
+        ),
+      ),
+    );
 
     // Events table is managed by migrateEventsTable; only non-events tables here
     yield* sql.unsafe(TABS_TABLE_SQL);

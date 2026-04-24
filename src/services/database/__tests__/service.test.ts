@@ -109,6 +109,25 @@ describe("makeDatabaseLive", () => {
     }
   });
 
+  it("skips events table DDL when user_version is already current", async () => {
+    const migratedHandler = (sql: string) => {
+      if (sql === "PRAGMA quick_check") {
+        return Effect.succeed([{ quick_check: "ok" }]);
+      }
+      if (sql === "PRAGMA user_version") {
+        return Effect.succeed([{ user_version: 5 }]);
+      }
+      return Effect.succeed([]);
+    };
+    const { calls, layer } = makeTestLayer(migratedHandler);
+    await Effect.runPromise(
+      Database.pipe(Effect.provide(layer), Effect.scoped),
+    );
+    expect(calls).not.toContain(EVENTS_TABLE_SQL);
+    expect(calls).not.toContain(EVENTS_SESSION_INDEX_SQL);
+    expect(calls).toContain(TABS_TABLE_SQL);
+  });
+
   it("wraps schema bootstrap failure as DatabaseQueryError", async () => {
     const failOnCreateHandler = (sql: string) => {
       if (sql === "PRAGMA quick_check") {

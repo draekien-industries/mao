@@ -14,6 +14,8 @@ export class UserMessageEvent extends Schema.Class<UserMessageEvent>(
   prompt: Schema.String,
 }) {}
 
+// SDKPartialAssistantMessage (stream_event) excluded — transient streaming delta, never persisted
+// SDKUnknownMessage must be last — catchall for unrecognised SDK types
 export const StoredEvent = Schema.Union(
   SDKSystemInitMessage,
   SDKAssistantMessage,
