@@ -37,27 +37,7 @@ const persist = (
           Effect.annotateLogs("error", err.message),
           Effect.annotateLogs(annotations.sessionId, sessionId),
           Effect.annotateLogs("eventType", eventType),
-        ),
-      ),
-    );
-
-const persistUserMessage = (
-  store: EventStoreService,
-  sessionId: string,
-  prompt: string,
-) =>
-  store
-    .append(
-      sessionId,
-      "user_message",
-      JSON.stringify({ type: "user_message", prompt }),
-    )
-    .pipe(
-      Effect.catchAll((err: DatabaseQueryError) =>
-        Effect.logWarning("Persistence write failed").pipe(
-          Effect.annotateLogs("error", err.message),
-          Effect.annotateLogs(annotations.sessionId, sessionId),
-          Effect.annotateLogs("eventType", "user_message"),
+          Effect.annotateLogs(annotations.operation, "persist"),
         ),
       ),
     );
@@ -97,7 +77,10 @@ export const makePersistentClaudeAgentLive = () =>
           });
           return Stream.concat(
             Stream.fromEffect(
-              persistUserMessage(store, sessionId, params.prompt),
+              persist(store, sessionId, "user_message", {
+                type: "user_message",
+                prompt: params.prompt,
+              }),
             ).pipe(Stream.drain),
             wrapStream(store, sessionId, inner.query(enriched)),
           );
@@ -107,14 +90,17 @@ export const makePersistentClaudeAgentLive = () =>
           const sessionId = params.session_id;
           return Stream.concat(
             Stream.fromEffect(
-              persistUserMessage(store, sessionId, params.prompt),
+              persist(store, sessionId, "user_message", {
+                type: "user_message",
+                prompt: params.prompt,
+              }),
             ).pipe(Stream.drain),
             wrapStream(store, sessionId, inner.resume(params)),
           );
         },
 
         cont: (params: ContinueParams) =>
-          Stream.unwrapScoped(
+          Stream.unwrap(
             Effect.gen(function* () {
               const sessionIdRef = yield* Ref.make(Option.none<string>());
               return inner.cont(params).pipe(
@@ -126,11 +112,10 @@ export const makePersistentClaudeAgentLive = () =>
                         Option.some(event.session_id),
                       );
                       yield* persist(store, event.session_id, "system", event);
-                      yield* persistUserMessage(
-                        store,
-                        event.session_id,
-                        params.prompt,
-                      );
+                      yield* persist(store, event.session_id, "user_message", {
+                        type: "user_message",
+                        prompt: params.prompt,
+                      });
                       return;
                     }
                     const sid = yield* Ref.get(sessionIdRef);
