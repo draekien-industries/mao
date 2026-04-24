@@ -1,6 +1,8 @@
-import type { AssistantMessageEvent } from "@/services/claude-cli/events";
+import type { SDKAssistantMessage } from "@/services/claude-agent/events";
 
-export const extractAssistantText = (event: AssistantMessageEvent): string =>
+type AssistantMessageLike = Pick<SDKAssistantMessage, "message">;
+
+export const extractAssistantText = (event: AssistantMessageLike): string =>
   event.message.content
     .filter(
       (block): block is { type: "text"; text: string } =>
