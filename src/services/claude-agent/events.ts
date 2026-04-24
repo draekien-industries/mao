@@ -99,13 +99,23 @@ export class ContentBlockStopApiEvent extends Schema.Class<ContentBlockStopApiEv
   index: Schema.Number,
 }) {}
 
+// Catchall for BetaRawMessageStreamEvent variants we don't inspect
+// (message_start, message_delta, message_stop) — must be last in the union.
+export class ApiStreamEventUnknown extends Schema.Class<ApiStreamEventUnknown>(
+  "ApiStreamEventUnknown",
+)({
+  type: Schema.String,
+}) {}
+
 export const ApiStreamEvent = Schema.Union(
   ContentBlockStartApiEvent,
   ContentBlockDeltaApiEvent,
   ContentBlockStopApiEvent,
+  ApiStreamEventUnknown,
 );
 export type ApiStreamEvent = typeof ApiStreamEvent.Type;
 
+// SDK: SDKSystemMessage — cwd and apiKeySource are required fields.
 export class SDKSystemInitMessage extends Schema.Class<SDKSystemInitMessage>(
   "SDKSystemInitMessage",
 )({
@@ -116,10 +126,12 @@ export class SDKSystemInitMessage extends Schema.Class<SDKSystemInitMessage>(
   tools: Schema.Array(Schema.String),
   model: Schema.String,
   permissionMode: Schema.String,
-  cwd: Schema.optional(Schema.String),
-  apiKeySource: Schema.optional(Schema.String),
+  cwd: Schema.String,
+  apiKeySource: Schema.String,
 }) {}
 
+// SDK: SDKAssistantMessageError is a string literal union — we decode as
+// optional string to avoid hardcoding the union and breaking on new values.
 export class SDKAssistantMessage extends Schema.Class<SDKAssistantMessage>(
   "SDKAssistantMessage",
 )({
@@ -127,6 +139,7 @@ export class SDKAssistantMessage extends Schema.Class<SDKAssistantMessage>(
   uuid: Schema.String,
   session_id: Schema.String,
   parent_tool_use_id: Schema.NullOr(Schema.String),
+  error: Schema.optional(Schema.String),
   message: Schema.Struct({
     id: Schema.String,
     type: Schema.Literal("message"),
@@ -139,6 +152,7 @@ export class SDKAssistantMessage extends Schema.Class<SDKAssistantMessage>(
   }),
 }) {}
 
+// SDK: SDKPartialAssistantMessage has optional ttft_ms field.
 export class SDKPartialAssistantMessage extends Schema.Class<SDKPartialAssistantMessage>(
   "SDKPartialAssistantMessage",
 )({
@@ -147,14 +161,16 @@ export class SDKPartialAssistantMessage extends Schema.Class<SDKPartialAssistant
   session_id: Schema.String,
   parent_tool_use_id: Schema.NullOr(Schema.String),
   event: ApiStreamEvent,
+  ttft_ms: Schema.optional(Schema.Number),
 }) {}
 
+// SDK: SDKUserMessage has uuid? and session_id? as optional fields.
 export class SDKUserMessage extends Schema.Class<SDKUserMessage>(
   "SDKUserMessage",
 )({
   type: Schema.Literal("user"),
-  uuid: Schema.String,
-  session_id: Schema.String,
+  uuid: Schema.optional(Schema.String),
+  session_id: Schema.optional(Schema.String),
   parent_tool_use_id: Schema.NullOr(Schema.String),
   message: Schema.Struct({
     role: Schema.Literal("user"),
@@ -162,6 +178,10 @@ export class SDKUserMessage extends Schema.Class<SDKUserMessage>(
   }),
 }) {}
 
+// SDK: SDKResultSuccess and SDKResultError both have duration_ms,
+// duration_api_ms, num_turns, total_cost_usd, usage as required fields.
+// We use a single class covering both subtypes; result is only present
+// on success so we keep it optional.
 export class SDKResultMessage extends Schema.Class<SDKResultMessage>(
   "SDKResultMessage",
 )({
@@ -171,11 +191,11 @@ export class SDKResultMessage extends Schema.Class<SDKResultMessage>(
   session_id: Schema.String,
   is_error: Schema.Boolean,
   result: Schema.optional(Schema.String),
-  duration_ms: Schema.optional(Schema.Number),
-  duration_api_ms: Schema.optional(Schema.Number),
-  num_turns: Schema.optional(Schema.Number),
-  total_cost_usd: Schema.optional(Schema.Number),
-  usage: Schema.optional(Usage),
+  duration_ms: Schema.Number,
+  duration_api_ms: Schema.Number,
+  num_turns: Schema.Number,
+  total_cost_usd: Schema.Number,
+  usage: Usage,
 }) {}
 
 // Catchall — must be last; matches anything with a `type` field

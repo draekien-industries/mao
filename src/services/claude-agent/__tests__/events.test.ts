@@ -26,6 +26,8 @@ describe("SDKMessage schema", () => {
       tools: ["Read"],
       model: "claude-sonnet-4-6",
       permissionMode: "default",
+      cwd: "/home/user/project",
+      apiKeySource: "user",
     };
     const result = decode(raw);
     expect(isSystemInitMessage(result)).toBe(true);
