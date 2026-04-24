@@ -48,29 +48,35 @@ export const makeSessionReconstructorLive = () =>
                 }),
               );
             } else if (isSDKUserMessage(row.event)) {
-              // D-10: Tool results as separate message blocks
-              const contentText = row.event.message.content
-                .map((block) => {
-                  if (typeof block.content === "string") return block.content;
-                  return block.content
-                    .map((c) => c.text ?? "")
-                    .filter((t) => t.length > 0)
-                    .join("\n");
-                })
-                .join("\n");
-              const firstBlock = row.event.message.content[0];
-              messages.push(
-                new ChatMessage({
-                  content: contentText,
-                  createdAt: row.createdAt,
-                  id: row.sequenceNumber,
-                  isError: firstBlock?.is_error === true ? true : undefined,
-                  role: "tool_result",
-                  toolUseId: firstBlock?.tool_use_id,
-                }),
-              );
+              const blocks = row.event.message.content;
+              if (blocks.length === 0) {
+                yield* Effect.logDebug(
+                  "Skipping SDKUserMessage with empty content",
+                );
+              } else {
+                const contentText = blocks
+                  .map((block) => {
+                    if (typeof block.content === "string") return block.content;
+                    return block.content
+                      .map((c) => c.text ?? "")
+                      .filter((t) => t.length > 0)
+                      .join("\n");
+                  })
+                  .join("\n");
+                const firstBlock = blocks[0];
+                messages.push(
+                  new ChatMessage({
+                    content: contentText,
+                    createdAt: row.createdAt,
+                    id: row.sequenceNumber,
+                    isError: firstBlock?.is_error || undefined,
+                    role: "tool_result",
+                    toolUseId: firstBlock?.tool_use_id,
+                  }),
+                );
+              }
             }
-            // ResultEvent, SystemRetryEvent, UnknownEvent -> skipped (D-09)
+            // SDKResultMessage, SDKUnknownMessage -> skipped, not rendered as chat messages
           }
 
           yield* Effect.logInfo("Session reconstructed").pipe(
